@@ -5,6 +5,7 @@ run/
 .idea/
 *.class
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.log
 out/
 .DS_Store
