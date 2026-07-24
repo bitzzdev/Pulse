@@ -170,7 +170,7 @@ public class PressureEngine {
     }
 
     private double normalizeWeather() {
-        var world = net.minecraft.client.MinecraftClient.getInstance().world;
+        var world = net.minecraft.client.Minecraft.getInstance().level;
         if (world == null) return 0.0;
         if (world.isThundering()) return 1.0;
         if (world.isRaining()) return 0.6;

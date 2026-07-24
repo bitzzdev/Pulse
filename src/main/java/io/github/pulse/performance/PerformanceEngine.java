@@ -3,10 +3,10 @@ package io.github.pulse.performance;
 import io.github.pulse.util.Constants;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +86,7 @@ public class PerformanceEngine {
     public void update() {
         if (!initialized) return;
 
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
 
         long now = System.nanoTime();
         double deltaMs = (now - lastUpdateTime) / Constants.NANOS_PER_MILLI;
@@ -107,9 +107,9 @@ public class PerformanceEngine {
         spikeStats15s.addSample(spikeValue);
         spikeStats60s.addSample(spikeValue);
 
-        ClientPlayerEntity player = client.player;
+        LocalPlayer player = client.player;
         if (player != null) {
-            Vec3d velocity = player.getVelocity();
+            Vec3 velocity = player.getVelocity();
             playerSpeed = (float) velocity.length();
 
             float yaw = player.getYaw();
@@ -131,21 +131,21 @@ public class PerformanceEngine {
             hasPrevRotation = false;
         }
 
-        if (client.worldRenderer != null) {
-            chunkRebuildActivity = client.worldRenderer.getChunkBuilder().getQueuedBuildCount();
-            gpuUploadActivity = client.worldRenderer.getChunkBuilder().getTotalUploadedBytes() > 0 ? 1 : 0;
+        if (client.levelRenderer != null) {
+            chunkRebuildActivity = client.levelRenderer.getChunkBuilder().getQueuedBuildCount();
+            gpuUploadActivity = client.levelRenderer.getChunkBuilder().getTotalUploadedBytes() > 0 ? 1 : 0;
         } else {
             chunkRebuildActivity = 0;
             gpuUploadActivity = 0;
         }
 
-        if (client.particleManager != null) {
-            particleCount = client.particleManager.getParticleCount();
+        if (client.particleEngine != null) {
+            particleCount = client.particleEngine.getParticleCount();
         } else {
             particleCount = 0;
         }
 
-        ClientWorld world = client.world;
+        ClientLevel world = client.level;
         if (world != null) {
             visibleEntityCount = world.getRegularEntities().size();
             transparentObjectCount = world.getBlockEntityTickList().size();
