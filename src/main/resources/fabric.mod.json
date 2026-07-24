@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "pulse",
+  "version": "${version}",
+  "name": "Pulse",
+  "description": "Adaptive Performance Manager for Minecraft",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "io.github.pulse.Pulse"
+    ],
+    "client": [
+      "io.github.pulse.client.PulseClient"
+    ],
+    "modmenu": [
+      "io.github.pulse.config.ConfigManager"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
