@@ -23,6 +23,8 @@ public class PulseClient implements ClientModInitializer {
     private static OptimizationStage lastCaptionStage = null;
     private static int captionCooldown = 0;
 
+    private static final double[] ENTITY_DIST_VALUES = {1.0, 1.0, 0.5, 0.5, 0.5};
+
     private static double savedEntityDistance = -1;
     private static CloudStatus savedCloudStatus = null;
     private static double savedRainLevel = -1;
@@ -88,8 +90,7 @@ public class PulseClient implements ClientModInitializer {
 
         int ordinal = stage.ordinal();
 
-        double entDistScale = Math.max(0.25, 1.0 - ordinal * 0.15);
-        options.entityDistanceScaling().set(entDistScale);
+        options.entityDistanceScaling().set(ENTITY_DIST_VALUES[ordinal]);
 
         if (ordinal >= OptimizationStage.MODERATE.ordinal()) {
             options.cloudStatus().set(CloudStatus.OFF);
