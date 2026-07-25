@@ -11,7 +11,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class HudOverlay {
     public void initialize() {
         HudElementRegistry.addLast(
             Identifier.fromNamespaceAndPath("pulse", "overlay"),
-            (GuiGraphics graphics, DeltaTracker tickCounter) -> render(graphics)
+            (GuiGraphicsExtractor graphics, DeltaTracker tickCounter) -> render(graphics)
         );
         this.lastActivityTime = System.currentTimeMillis();
         this.animationAlpha = 1.0f;
@@ -78,7 +78,7 @@ public class HudOverlay {
         }
     }
 
-    private void render(GuiGraphics context) {
+    private void render(GuiGraphicsExtractor context) {
         if (!initialized || !visible || !debugMode) return;
 
         long now = System.currentTimeMillis();

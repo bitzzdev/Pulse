@@ -3,11 +3,7 @@
   "package": "io.github.pulse.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "ParticleEngineMixin",
-    "EntityRenderDispatcherMixin",
-    "SectionRenderDispatcherMixin",
-    "GuiMixin",
-    "ChatComponentMixin"
+    "ParticleEngineMixin"
   ],
   "injectors": {
     "defaultRequire": 0
