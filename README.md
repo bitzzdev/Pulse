@@ -1,49 +1,56 @@
 # Pulse — Adaptive Performance Manager for Minecraft
 
-![Build](https://img.shields.io/github/actions/workflow/status/yourorg/Pulse/build.yml?branch=main)
-![License](https://img.shields.io/github/license/yourorg/Pulse)
-![Minecraft](https://img.shields.io/badge/Minecraft-26.2-blue)
+![Minecraft](https://img.shields.io/badge/Minecraft-26.2-blueviolet)
 ![Fabric](https://img.shields.io/badge/Fabric-0.19.3%2B-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-Pulse continuously monitors rendering performance and intelligently adjusts cosmetic rendering features to maintain smooth gameplay. When performance recovers, every optimization is gradually reversed.
+Pulse continuously monitors framerate performance and automatically adjusts cosmetic settings to maintain smooth gameplay. When performance recovers, changes are gradually reversed.
 
-## Features
+**Status: Pre-alpha.** The core engine (FPS monitoring, pressure scoring, stage transitions) works. Real game optimizations are limited — see below.
 
-- **Adaptive Quality Manager** — Dynamically scales cosmetic features based on real-time frametime measurements
-- **Particle System Optimizer** — Reduces particle counts during performance pressure, restores when idle
-- **Entity Render Distance Controller** — Adjusts entity tracking and rendering distances based on available budget
-- **Animation Throttler** — Selectively reduces animation rates (item bob, fluid, etc.) during load
-- **Lighting Culler** — Optimizes light update scheduling under heavy load
-- **Sound Distance Culler** — Prioritizes nearby sounds and defers distant ones
-- **Biome Transition LOD** — Reduces biome color recalculation frequency when frames drop
-- **Weather Intensity Manager** — Scales rain/snow particle density and cloud opacity dynamically
-- **HUD Overlay** — Real-time visualization of pulse state, budget usage, and active modules
-- **Performance Budget System** — Define a target frametime budget; Pulse works to stay within it
-- **Compatibility System** — Automatically detects other optimization mods and avoids conflicts
-- **ModMenu Integration** — Full configuration GUI
-- **Import/Export** — Share your Pulse configuration as JSON
+## What Works Now
+
+- **FPS monitoring** — Tracks frametime, spikes, entity count, player velocity every tick
+- **Pressure scoring** — Combines metrics into a 0–100 pressure score with configurable sensitivity
+- **Stage transitions** — 5 stages (Normal → Minor → Moderate → Heavy → Emergency) with hysteresis and gradual recovery
+- **Entity distance scaling** — Reduces entity render radius under pressure via `options.entityDistanceScaling()`
+- **Cloud reduction** — Disables clouds at Moderate+ stage via `options.cloudStatus()`
+- **Weather dampening** — Reduces rain/thunder intensity proportionally to pressure
+- **ModMenu GUI** — Full configuration screen with Cloth Config
+- **Debug overlay** — Shows FPS, pressure score, stage, active modules, estimated savings
+- **Compatibility scanner** — Detects Sodium, Iris, Lithium, etc.; disables stubs to avoid false conflicts
+- **PerformanceEngine** — Rolling window frametime statistics (1s/5s/15s/60s)
+- **AdaptiveManager** — Recovery cooldowns prevent oscillation (staged recovery timing)
+
+## What's a Framework Only (Planned)
+
+These module classes are registered and their `update()` is called every tick, but **none are wired into Minecraft's rendering pipeline** yet. They have no effect on the game. Pulse's actual optimizations happen directly in the tick loop, not through the module system.
+
+- ParticleOptimizer
+- EntityOptimizer
+- CloudOptimizer
+- WeatherOptimizer (rain/thunder reduction works via direct API; particle-level control does not)
+- AnimationOptimizer
+- ShadowOptimizer
+- TransparencyOptimizer
+- UIOptimizer
+- ChunkUploadOptimizer
+
+See [ROADMAP.md](ROADMAP.md) for future plans.
 
 ## Installation
 
-1. Download the latest Pulse JAR from the [Releases](https://github.com/yourorg/Pulse/releases) page.
-2. Place the JAR into your Minecraft instance's `mods/` folder.
-3. Ensure Fabric API is also installed.
-4. Launch Minecraft and configure Pulse via ModMenu (optional).
+1. Download the Pulse JAR from the [Releases](https://github.com/bitzCognautic/Pulse/releases) page.
+2. Place the JAR into `.minecraft/mods/`.
+3. Ensure **Fabric API** is also installed.
+4. Launch Minecraft. Configure Pulse via ModMenu (optional).
 
 ## Requirements
 
-- **Minecraft 26.2** (1.21.5+)
+- **Minecraft 26.2** (Mojmap)
 - **Fabric Loader 0.19.3+**
-- **Fabric API**
+- **Fabric API 0.155.2+**
 - **Java 25**
-
-## Configuration
-
-Pulse is configured through ModMenu or by editing `config/pulse.json` directly. See [CONFIGURATION.md](CONFIGURATION.md) for a full reference of every option.
-
-## Compatibility
-
-Pulse is designed to coexist with other optimization mods. It automatically detects installed mods and adjusts its behaviour to avoid redundant work. See [COMPATIBILITY.md](COMPATIBILITY.md) for details.
 
 ## Building from Source
 
@@ -55,4 +62,4 @@ The compiled JAR will be in `build/libs/`.
 
 ## License
 
-This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).

@@ -23,7 +23,6 @@ public class PulseClient implements ClientModInitializer {
     private static OptimizationStage lastCaptionStage = null;
     private static int captionCooldown = 0;
 
-    private static int savedRenderDistance = -1;
     private static double savedEntityDistance = -1;
     private static CloudStatus savedCloudStatus = null;
     private static double savedRainLevel = -1;
@@ -78,7 +77,6 @@ public class PulseClient implements ClientModInitializer {
         }
 
         if (!settingsSaved) {
-            savedRenderDistance = options.renderDistance().get();
             savedEntityDistance = options.entityDistanceScaling().get();
             savedCloudStatus = options.cloudStatus().get();
             if (level != null) {
@@ -89,11 +87,6 @@ public class PulseClient implements ClientModInitializer {
         }
 
         int ordinal = stage.ordinal();
-
-        int renderDist = Math.max(2, savedRenderDistance - ordinal * 2);
-        if (options.renderDistance().get() != renderDist) {
-            options.renderDistance().set(renderDist);
-        }
 
         double entDistScale = Math.max(0.25, 1.0 - ordinal * 0.15);
         options.entityDistanceScaling().set(entDistScale);
@@ -119,9 +112,6 @@ public class PulseClient implements ClientModInitializer {
 
     private static void restoreSettings(Options options, ClientLevel level) {
         if (settingsSaved) {
-            if (savedRenderDistance >= 0) {
-                options.renderDistance().set(savedRenderDistance);
-            }
             if (savedEntityDistance > 0) {
                 options.entityDistanceScaling().set(savedEntityDistance);
             }
@@ -132,7 +122,6 @@ public class PulseClient implements ClientModInitializer {
                 level.setRainLevel((float) savedRainLevel);
                 level.setThunderLevel((float) savedThunderLevel);
             }
-            savedRenderDistance = -1;
             savedEntityDistance = -1;
             savedCloudStatus = null;
             savedRainLevel = -1;

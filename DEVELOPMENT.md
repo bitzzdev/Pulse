@@ -1,88 +1,52 @@
 # Development Guide
 
-## Setup
-
-### Prerequisites
+## Prerequisites
 
 - **Java 25** (JDK 25+)
 - **Git**
-- A Minecraft development environment (Fabric Loom handles this)
 
-### Clone and Import
+## Setup
 
 ```bash
-git clone https://github.com/yourorg/Pulse.git
+git clone https://github.com/bitzCognautic/Pulse.git
 cd Pulse
 ```
 
-Open the project in your IDE (IntelliJ IDEA recommended). Gradle import should happen automatically. If not, run:
-
-```bash
-./gradlew idea
-```
-
-### First Build
-
-```bash
-./gradlew build
-```
-
-This downloads dependencies, compiles the mod, runs checks, and produces a JAR in `build/libs/`.
+Open in IntelliJ IDEA. The Gradle import handles dependencies.
 
 ## Build Commands
 
 | Command | Description |
 |---|---|
-| `./gradlew build` | Full build: compile, test, lint |
+| `./gradlew build` | Full build |
 | `./gradlew runClient` | Launch Minecraft with the mod |
-| `./gradlew test` | Run unit tests only |
-| `./gradlew check` | Run all verification tasks |
 | `./gradlew clean` | Clean build outputs |
-| `./gradlew :publish` | Publish to local Maven (for testing) |
 
-## Testing Approach
+Testing and CI are run via GitHub Actions (`build.yml`).
 
-- **Unit tests** cover core engine logic: metrics collection, prediction, scheduling.
-- **Module tests** verify level transitions produce expected value changes.
-- **Integration tests** run inside a Minecraft environment to verify modules interact correctly with game state.
-- **Performance regression tests** measure frametime impact of each module.
+## Project Layout
 
-Run tests with:
+- `Pulse.java` — `ModInitializer`, wires singletons
+- `PulseClient.java` — `ClientModInitializer`, applies optimizations per tick
+- `performance/` — frametime tracking, rolling statistics
+- `pressure/` — weighted normalisation → pressure score
+- `adaptive/` — stage mapping and recovery timing
+- `modules/` — 9 module stubs (none wired yet)
+- `config/` — ModMenu GUI + JSON persistence
+- `overlay/` — debug HUD
+- `compat/` — mod scanner
 
-```bash
-./gradlew test
-```
+## Adding a New Optimization
 
-## Profiling and Performance Analysis
+1. Implement the change in `PulseClient.applyOptimizations()` (if using Options API).
+2. Or, wire into a Fabric event (`LevelRenderEvents`, etc.).
+3. Add toggles in `ConfigManager.buildScreen()` if user-controllable.
+4. Update `README.md` and `ARCHITECTURE.md`.
 
-Pulse is itself a performance-sensitive mod. When contributing, ensure your changes do not introduce measurable overhead.
+## Notes on Minecraft 26.2
 
-### Tools
-
-- **JMC (JDK Mission Control)** — Flight Recorder recordings for method-level profiling.
-- **Spark** — In-game profiler (install Spark mod alongside Pulse).
-- **Minecraft's built-in F3 debug** — Basic frametime monitoring.
-
-### Methodology
-
-1. Establish a baseline: run a standard scene without Pulse for 60 seconds.
-2. Run the same scene with Pulse (default config) and record the overhead.
-3. Run with your module changes and compare.
-4. Overhead should not exceed 0.5 ms (≈3% at 60 FPS).
-
-Create a profiling profile in JMC that captures:
-- CPU sampling every 10 ms
-- Allocation profiling
-- Thread contention
-
-## Adding a New Module
-
-1. Create a new package under `src/main/java/io/github/yourorg/pulse/module/<name>/`.
-2. Implement the `Module` interface.
-3. Define config options in `PulseConfig.java`.
-4. Add a default level entry in `ModuleRegistry`.
-5. Register compatibility rules if needed.
-6. Add configuration documentation to `CONFIGURATION.md`.
-7. Write unit tests for level transitions.
-
-See `docs/templates/module-template.md` for a ready-to-use implementation template.
+- The rendering system was rewritten (two-phase extraction + submit nodes).
+- `WorldRenderEvents` was removed; use `LevelRenderEvents` / `LevelExtractionEvents`.
+- `GraphicsStatus` / `graphicsMode()` were removed.
+- Old mixin targets (`EntityRenderDispatcher.render`, `ParticleEngine.particles`, etc.) were renamed or restructured.
+- Fabric API 0.155.2+26.2 is required.

@@ -1,49 +1,46 @@
 # Pulse Roadmap
 
-## v0.1.0-alpha — Core Engine + Basic Modules
+## Current Status (Pre-alpha)
 
-- [x] Project scaffold and build system
-- [x] Metrics collection (frametime sampling, sliding window)
-- [x] Performance prediction (moving average + trend)
-- [x] Budget scheduler with priority queue
-- [x] Module interface and registry
-- [x] Particle Optimizer module
-- [x] Entity Render Distance Controller module
-- [x] Basic configuration file (JSON)
-- [ ] ModMenu integration
-- [ ] HUD overlay (basic)
-- [ ] Compatibility system
-- [ ] Documentation
+### Working
+- PerformanceEngine (frametime/FPS tracking, rolling windows)
+- PressureEngine (weighted normalisation → 0–100 score)
+- AdaptiveManager (stage mapping, hysteresis, recovery timers)
+- PulseClient optimizations via Options API:
+  - Entity distance scaling
+  - Cloud status (off at Moderate+)
+  - Rain/thunder intensity reduction
+- Debug overlay (FPS, pressure, stage, active modules)
+- ModMenu configuration GUI (Cloth Config)
+- JSON config save/load
+- Compatibility mod scanner (no actual conflicts yet)
 
-## v0.5.0-beta — All Modules + HUD + Config
+### Framework Only (No Game Hooks)
+- ParticleOptimizer
+- EntityOptimizer
+- CloudOptimizer
+- WeatherOptimizer
+- AnimationOptimizer
+- ShadowOptimizer (Iris/OptiFine reflection exists but untested)
+- TransparencyOptimizer
+- UIOptimizer
+- ChunkUploadOptimizer
 
-- [ ] Animation Throttler module
-- [ ] Lighting Culler module
-- [ ] Sound Distance Culler module
-- [ ] Biome Transition LOD module
-- [ ] Weather Intensity Manager module
-- [ ] Full ModMenu config GUI
-- [ ] HUD overlay (all features: budget gauge, module states, FPS)
-- [ ] Configuration import/export
-- [ ] Sodium compatibility integration
-- [ ] Lithium compatibility integration
-- [ ] Performance regression test suite
-- [ ] Public beta release
+## Planned Work
 
-## v1.0.0 — Stable Release
+### Short Term (Module Wiring)
+- Research Fabric API 26.2 `LevelExtractionEvents` / `LevelRenderEvents` for correct hook points
+- Wire ParticleOptimizer into particle extraction/render pipeline
+- Wire remaining modules using LevelRenderEvents or lightweight mixins
+- Connect module savings to BudgetSystem so the overlay shows real impact
 
-- [ ] All modules stable and tested
-- [ ] Performance benchmarks published
-- [ ] API freeze for module system
-- [ ] Full documentation complete
-- [ ] Profiling guide and methodology
-- [ ] Community feedback integrated
-- [ ] Release on Modrinth and CurseForge
+### Medium Term
+- Adaptive render distance (non-invasive, via Options API)
+- Per-module config options (thresholds per module)
+- Better recovery: restore individual settings progressively
+- Performance regression test harness
 
-## Future
-
-- **Adaptive Render Distance** — Dynamically adjust view distance based on frametime budget, integrated with Sodium's render distance slider.
-- **Dynamic Resolution** — Scale render resolution down during heavy load and back up when recovered (requires Iris or Sodium compatibility).
-- **ML Prediction** — Use a lightweight on-device ML model to predict frametime drops before they occur, based on patterns in entity density, chunk updates, and particle counts.
-- **Plugin API** — Allow third-party mods to register custom Pulse modules through a public API, enabling other mod developers to make their features Pulse-aware.
-- **Multiplayer Awareness** — Coordinate Pulse state across a server to balance resource usage on shared worlds.
+### Long Term
+- Dynamic resolution scaling (requires Iris/Sodium rendering API)
+- Public API for third-party mods to register Pulse-aware modules
+- Multiplayer awareness for server-coordinated optimization

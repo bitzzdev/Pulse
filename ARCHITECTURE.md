@@ -1,121 +1,97 @@
 # Pulse Architecture
 
-## High-Level Overview
+## Overview
 
-Pulse is a layered optimization engine that sits between Minecraft's render loop and the cosmetic rendering systems. It observes frametime metrics, predicts performance pressure, applies knobs on rendering modules, and recovers when headroom becomes available.
+Pulse is a layered performance monitor that sits between Minecraft's client tick loop and game settings. It observes framerate metrics, computes a pressure score, maps it to optimization stages, and applies cosmetic setting changes.
 
 ```
-+---------------------------------------------------------------+
-|                        Minecraft Render Loop                   |
-+---------------------------------------------------------------+
-                               |
-                               v
-+---------------------------------------------------------------+
-|  Pulse Engine                                                  |
-|  +-------------------+  +------------------+  +--------------+ |
-|  | Metrics Collector |  | Performance      |  | Budget       | |
-|  | (frametimes, GPU  |  | Predictor        |  | Scheduler   | |
-|  |  stats, memory)   |  | (moving avg,     |  | (priority    | |
-|  +-------------------+  |  trend analysis)  |  |  queue)      | |
-|         |               +------------------+  +--------------+ |
-|         v                        v                  v          |
-|  +--------------------------------------------------------+   |
-|  |                Module Manager                            |   |
-|  |  +----------+ +----------+ +----------+ +----------+   |   |
-|  |  | Particle | | Entity   | | Animation| | Lighting |   |   |
-|  |  | Optimizer| | Culler   | |Throttler | | Culler   |   |   |
-|  |  +----------+ +----------+ +----------+ +----------+   |   |
-|  |  +----------+ +----------+ +----------+ +----------+   |   |
-|  |  | Sound    | | Biome LOD| | Weather  | | (future) |   |   |
-|  |  | Manager  | |          | | Manager  | |          |   |   |
-|  |  +----------+ +----------+ +----------+ +----------+   |   |
-|  +--------------------------------------------------------+   |
-+---------------------------------------------------------------+
-                               |
-                               v
-+---------------------------------------------------------------+
-|                    Minecraft Rendering Systems                  |
-|  (Particles, Entities, Animations, Lighting, Sound, Biomes,   |
-|   Weather, ...)                                                |
-+---------------------------------------------------------------+
+Client Tick Loop
+       │
+       ▼
+┌──────────────────────┐
+│  PerformanceEngine    │ ← frametime, FPS, spikes, entity count, velocity
+│  (rolling windows)    │
+└──────────┬───────────┘
+           ▼
+┌──────────────────────┐
+│  PressureEngine       │ ← normalizes metrics → 0–100 pressure score
+│  (weighted sum)       │
+└──────────┬───────────┘
+           ▼
+┌──────────────────────┐
+│  AdaptiveManager      │ ← maps score → OptimizationStage, handles recovery
+│  (hysteresis + timer) │
+└──────────┬───────────┘
+           ▼
+┌──────────────────────┐
+│  PulseClient          │ ← applies real changes: entityDist, clouds, weather
+│  (END_CLIENT_TICK)    │
+└──────────────────────┘
 ```
 
-## Data Flow: Observe → Predict → Optimize → Recover
+## Data Flow
 
-### 1. Observe
-The `MetricsCollector` samples frametime deltas every rendered frame. It maintains a sliding window of the last N samples and computes aggregate statistics (p50, p95, max, variance). Optional GPU metrics are collected when available.
+### Per Tick (END_CLIENT_TICK)
 
-### 2. Predict
-The `PerformancePredictor` feeds metrics through a weighted moving average and a simple trend line. If the trend projects that the frametime budget will be exceeded within the next few frames, a pressure event is emitted.
-
-### 3. Optimize
-When pressure is detected, the `BudgetScheduler` activates modules in priority order. Each module reduces the visual cost it controls by one step. The scheduler re-evaluates every frame until the budget is met.
-
-### 4. Recover
-When frametime stabilises below threshold for a configurable hold period, modules are restored one step at a time in reverse priority order (most impactful first). Recovery is deliberately gradual to avoid oscillation.
+1. **PerformanceEngine.update()** — captures current FPS, frametime, spike detection, player velocity, entity count, GC events
+2. **PressureEngine.update()** — normalizes each metric (0–1), multiplies by weights (total 1.0), sums to a 0–100 pressure score with rate-limiting and hysteresis
+3. **AdaptiveManager.update()** — translates pressure score into `OptimizationStage`, manages recovery delays (wait N ticks before stepping down)
+4. **ModuleManager.update(stage)** — calls `update()` on every registered module (none actually change game state yet)
+5. **PulseClient.applyOptimizations()** — the only place real game changes happen:
+   - `options.entityDistanceScaling().set()` — reduces entity render distance
+   - `options.cloudStatus().set()` — disables clouds at Moderate+
+   - `level.setRainLevel()` / `level.setThunderLevel()` — damps weather
+   - Saves originals on first pressure; restores on return to Normal
 
 ## Package Structure
 
 ```
-io/github/yourorg/pulse/
-  PulseMod.java                  — Fabric mod entrypoint
+io.github.pulse/
+  Pulse.java                     — Fabric ModInitializer, wires all singletons
+  api/
+    OptimizationStage.java       — NORMAL / MINOR / MODERATE / HEAVY / EMERGENCY
+    ModuleType.java              — enum: PARTICLES, ENTITIES, CHUNKS, CLOUDS, ...
+    AdaptiveModule.java          — interface for module framework
+    PulseAPI.java                — static accessors for engine state
+  performance/
+    PerformanceEngine.java       — rolling frametime stats, FPS, entity tracking
+    RollingStatistics.java       — sliding-window statistics
+  pressure/
+    PressureEngine.java          — weighted metric normalisation → 0–100 score
+  adaptive/
+    AdaptiveManager.java         — stage mapping with hysteresis and recovery delay
+  modules/
+    ModuleManager.java           — registers/updates all modules
+    ParticleOptimizer.java       — stub (no game hook)
+    EntityOptimizer.java         — stub (no game hook)
+    CloudOptimizer.java          — stub (no game hook)
+    WeatherOptimizer.java        — stub (rain/thunder done in PulseClient directly)
+    AnimationOptimizer.java      — stub
+    ShadowOptimizer.java         — stub with Iris/OptiFine reflection (untested)
+    TransparencyOptimizer.java   — stub
+    UIOptimizer.java             — stub
+    ChunkUploadOptimizer.java    — stub
+  budget/
+    BudgetSystem.java            — tracks frametime vs target, estimates savings
   config/
-    PulseConfig.java             — Root config holder (AutoConfig)
-    ConfigSerializer.java        — JSON import/export
-    PulseConfigScreen.java       — ModMenu integration
-  engine/
-    PulseEngine.java             — Core orchestrator
-    MetricsCollector.java        — Frametime sampling & aggregation
-    PerformancePredictor.java    — Trend analysis & pressure detection
-    BudgetScheduler.java         — Priority-based module activation
-  module/
-    Module.java                  — Module interface
-    ModuleRegistry.java          — Module registration & lifecycle
-    particle/
-      ParticleModule.java        — Particle count scaling
-    entity/
-      EntityModule.java          — Entity render distance control
-    animation/
-      AnimationModule.java       — Animation rate throttling
-    lighting/
-      LightingModule.java        — Light update scheduling
-    sound/
-      SoundModule.java           — Sound distance culling
-    biome/
-      BiomeModule.java           — Biome transition LOD
-    weather/
-      WeatherModule.java         — Weather intensity scaling
-  hud/
-    PulseHudOverlay.java         — In-game HUD overlay
+    ConfigManager.java           — ModMenu integration + JSON save/load
+    PulseConfig.java             — config POJO (targetFps, sensitivity, etc.)
+  overlay/
+    HudOverlay.java              — debug overlay registered with HudElementRegistry
   compat/
-    CompatibilityChecker.java    — Mod detection & conflict resolution
-    SodiumCompat.java            — Sodium-specific integration
-    LithiumCompat.java           — Lithium-specific integration
+    CompatibilityManager.java    — mod list scanner, marks stubs as disabled/reduced
+  client/
+    PulseClient.java             — ClientModInitializer, applies real optimizations
+  util/
+    Constants.java               — thresholds, window sizes, recovery times
 ```
 
-## Module System
+## Module System (Framework Only)
 
-Every optimisation is implemented as a `Module`. Each module:
+`AdaptiveModule` is an interface with `initialize()`, `update(stage)`, `enable()`, `disable()`, `recover()`, `shutdown()`. All 9 modules implement it. Their `update()` is called every tick with the current stage. However, none of them hook into Minecraft's rendering systems because:
 
-- Exposes a set of discrete levels (e.g. OFF, LOW, MEDIUM, HIGH, ULTRA).
-- Implements `apply(int level)` which sets the rendering parameter to the given level.
-- Reports its estimated cost impact via `costImpact()`.
-- Registers with the `ModuleRegistry` at initialisation.
+- **26.2 rewrote rendering** — old mixin targets (`LevelRenderer`, `EntityRenderDispatcher`, `ParticleEngine`) were renamed/restructured
+- **No Fabric events exist** for per-entity or per-particle culling in the new 26.2 pipeline
+- The module framework is structural scaffolding awaiting correct 26.2 hooks
 
-Modules are independent and can be disabled individually in the config.
-
-## Performance Budget System
-
-The user defines a target frametime budget (e.g. 16.67 ms for 60 FPS). Pulse maintains a headroom margin (default 10%). The budget scheduler calculates the gap between current frametime and the target minus headroom, then activates module levels until the gap is closed.
-
-Module costs are estimated via pre-benchmarked weight values and are refined at runtime through observation.
-
-## Compatibility System
-
-On initialisation, `CompatibilityChecker` scans the loaded mod list. If known mods are detected (Sodium, Lithium, Phosphor, etc.), Pulse:
-
-- Disables modules that would duplicate existing functionality.
-- Adjusts default levels to avoid interference.
-- Logs detected mods and applied compatibility rules.
-
-This runs before any module is activated, ensuring safe default behaviour.
+Real optimizations bypass the module system entirely and directly change `Options` and `ClientLevel` state in `PulseClient`.

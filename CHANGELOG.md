@@ -1,25 +1,27 @@
 # Changelog
 
-All notable changes to Pulse are documented in this file.
-
-## [0.1.0-alpha] - 2026-07-24
+## 0.1.0-alpha - Pre-release
 
 ### Added
-- Initial project structure with Fabric Loom build system
-- PulseEngine orchestrator with observe → predict → optimise → recover loop
-- MetricsCollector: frametime sampling with configurable sliding window
-- PerformancePredictor: weighted moving average and trend analysis
-- BudgetScheduler: priority-queue-based module activation
-- Module interface (`io.github.yourorg.pulse.module.Module`)
-- ModuleRegistry for lifecycle management
-- ParticleOptimizer: particle count scaling over 5 levels
-- EntityRenderDistanceController: entity tracking distance over 4 levels
-- JSON configuration file (`config/pulse.json`) with auto-generation
-- Core configuration options: budget, headroom, recovery timing
-- Project documentation: README, ARCHITECTURE, DEVELOPMENT, CONFIGURATION, COMPATIBILITY, PERFORMANCE
-- MIT License
+- Project scaffold with Fabric Loom build system (Mojmap 26.2)
+- `PerformanceEngine` — frametime/FPS tracking with rolling windows (1s/5s/15s/60s)
+- `PressureEngine` — weighted normalisation of metrics → 0–100 pressure score
+- `AdaptiveManager` — stage transitions (Normal→Emergency) with recovery delay
+- `PulseClient` — per-tick optimizations via Options/ClientLevel API:
+  - Entity distance scaling
+  - Cloud status (off at Moderate+)
+  - Rain/thunder intensity reduction
+- `ModuleManager` with 9 stub modules (framework only, no game hooks)
+- `ConfigManager` — ModMenu integration (Cloth Config)
+- `PulseConfig` — JSON save/load
+- `HudOverlay` — debug overlay (FPS, pressure, stage, modules)
+- `CompatibilityManager` — mod scanner (Sodium, Iris, Lithium, etc.)
+- `BudgetSystem` — frametime tracking with savings estimation
+- Project documentation: README, ARCHITECTURE, DEVELOPMENT, CONFIGURATION, COMPATIBILITY, PERFORMANCE, ROADMAP
 
 ### Known Issues
-- ModMenu GUI is not yet implemented; edit `config/pulse.json` directly
-- HUD overlay is not yet implemented
-- Compatibility system is stubbed but not active
+- All 9 module classes are stubs — they register, update, but have no effect on rendering
+- ShadowOptimizer's Iris/OptiFine reflection is untested
+- Cloud optimization (`options.cloudStatus()`) compiles but CI build has not confirmed it works
+- No benchmark data for expected FPS gains
+- Recovery timing uses fixed ticks (not smoothed interpolation)
