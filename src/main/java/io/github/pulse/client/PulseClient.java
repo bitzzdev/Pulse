@@ -79,15 +79,15 @@ public class PulseClient implements ClientModInitializer {
 
     public static void showActionBar(String text) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.gui != null) {
-            minecraft.gui.setOverlayMessage(Component.literal(text), false);
+        if (minecraft.player != null) {
+            minecraft.player.sendMessage(Component.literal(text), true);
         }
     }
 
     public static void showActionBar(Component component) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.gui != null) {
-            minecraft.gui.setOverlayMessage(component, false);
+        if (minecraft.player != null) {
+            minecraft.player.sendMessage(component, true);
         }
     }
 
