@@ -48,14 +48,14 @@ jobs:
           done
 
       - name: Upload main JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pulse
           path: build/artifacts/main/*.jar
           if-no-files-found: error
 
       - name: Upload sources JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pulse-sources
           path: build/artifacts/sources/*.jar
