@@ -10,6 +10,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +22,11 @@ public class PulseClient implements ClientModInitializer {
 
     private static OptimizationStage lastCaptionStage = null;
     private static int captionCooldown = 0;
+
     private static int savedRenderDistance = -1;
+    private static double savedRainLevel = -1;
+    private static double savedThunderLevel = -1;
+    private static boolean settingsSaved = false;
 
     @Override
     public void onInitializeClient() {
@@ -60,30 +67,56 @@ public class PulseClient implements ClientModInitializer {
 
     private static void applyOptimizations(Minecraft client) {
         OptimizationStage stage = PulseAPI.getOptimizationStage();
-        var options = client.options;
+        Options options = client.options;
+        ClientLevel level = client.level;
 
         if (stage == OptimizationStage.NORMAL) {
-            if (savedRenderDistance >= 0) {
-                options.renderDistance().set(savedRenderDistance);
-                savedRenderDistance = -1;
-            }
+            restoreSettings(options, level);
             return;
         }
 
-        if (savedRenderDistance < 0) {
+        if (!settingsSaved) {
             savedRenderDistance = options.renderDistance().get();
+            if (level != null) {
+                savedRainLevel = level.getRainLevel(1.0f);
+                savedThunderLevel = level.getThunderLevel(1.0f);
+            }
+            settingsSaved = true;
         }
 
-        int renderDist = switch (stage) {
-            case MINOR -> Math.max(2, savedRenderDistance - 2);
-            case MODERATE -> Math.max(2, savedRenderDistance - 4);
-            case HEAVY -> Math.max(2, savedRenderDistance - 6);
-            case EMERGENCY -> Math.max(2, savedRenderDistance - 8);
-            default -> savedRenderDistance;
-        };
+        int ordinal = stage.ordinal();
 
+        int renderDist = Math.max(2, savedRenderDistance - ordinal * 2);
         if (options.renderDistance().get() != renderDist) {
             options.renderDistance().set(renderDist);
+        }
+
+        if (level != null) {
+            float weatherFactor = switch (stage) {
+                case MINOR -> 0.5f;
+                case MODERATE -> 0.25f;
+                case HEAVY -> 0.1f;
+                case EMERGENCY -> 0.0f;
+                default -> 1.0f;
+            };
+            level.setRainLevel((float) savedRainLevel * weatherFactor);
+            level.setThunderLevel((float) savedThunderLevel * weatherFactor);
+        }
+    }
+
+    private static void restoreSettings(Options options, ClientLevel level) {
+        if (settingsSaved) {
+            if (savedRenderDistance >= 0) {
+                options.renderDistance().set(savedRenderDistance);
+            }
+            if (level != null && savedRainLevel >= 0) {
+                level.setRainLevel((float) savedRainLevel);
+                level.setThunderLevel((float) savedThunderLevel);
+            }
+            savedRenderDistance = -1;
+            savedRainLevel = -1;
+            savedThunderLevel = -1;
+            settingsSaved = false;
         }
     }
 
