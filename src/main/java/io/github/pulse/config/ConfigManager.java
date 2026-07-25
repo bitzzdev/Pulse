@@ -48,7 +48,6 @@ public class ConfigManager implements ModMenuApi {
         return this::buildScreen;
     }
 
-    @Override
     public Screen create(Screen parent) {
         return buildScreen(parent);
     }
