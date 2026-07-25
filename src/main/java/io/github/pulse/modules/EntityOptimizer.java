@@ -5,6 +5,7 @@ import io.github.pulse.api.AdaptiveModule;
 import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -18,6 +19,7 @@ public class EntityOptimizer implements AdaptiveModule {
     private static final double[] RENDER_DISTANCES = {Double.MAX_VALUE, 64.0, 48.0, 32.0, 16.0};
     private static final float[] ANIMATION_FREQUENCY_FACTORS = {1.0f, 0.9f, 0.7f, 0.5f, 0.25f};
     private static final float[] INTERPOLATION_RATES = {1.0f, 0.9f, 0.75f, 0.5f, 0.3f};
+    private static final double[] ENTITY_DIST_VALUES = {1.0, 1.0, 0.5, 0.5, 0.5};
     private static final double PRIORITY_DISTANCE = 16.0;
 
     private boolean enabled = true;
@@ -30,6 +32,9 @@ public class EntityOptimizer implements AdaptiveModule {
     private int animationTickSkip;
 
     private final Set<Integer> highPriorityEntities = new HashSet<>();
+
+    private boolean settingsSaved;
+    private double savedEntityDistance = -1;
 
     @Override
     public void initialize() {
@@ -58,6 +63,7 @@ public class EntityOptimizer implements AdaptiveModule {
     @Override
     public void disable() {
         this.enabled = false;
+        restoreSettings();
     }
 
     @Override
@@ -79,6 +85,13 @@ public class EntityOptimizer implements AdaptiveModule {
     public void update(OptimizationStage stage) {
         OptimizationStage previous = currentStage;
         currentStage = stage;
+
+        if (stage == OptimizationStage.NORMAL) {
+            restoreSettings();
+        } else {
+            saveSettings();
+        }
+
         int ordinal = stage.ordinal();
         animationLODDistance = ANIMATION_LOD_DISTANCES[Math.min(ordinal, ANIMATION_LOD_DISTANCES.length - 1)];
         renderDistance = RENDER_DISTANCES[Math.min(ordinal, RENDER_DISTANCES.length - 1)];
@@ -86,7 +99,12 @@ public class EntityOptimizer implements AdaptiveModule {
         interpolationRate = INTERPOLATION_RATES[Math.min(ordinal, INTERPOLATION_RATES.length - 1)];
         skipCosmetics = ordinal >= OptimizationStage.MODERATE.ordinal();
         animationTickSkip = Math.max(1, (int) ((1.0f - animationFrequencyFactor) * 10) + 1);
+
+        if (stage != OptimizationStage.NORMAL) {
+            applyEntityDistance(ENTITY_DIST_VALUES[ordinal]);
+        }
         updateEntityRenderDistance();
+
         if (stage != previous) {
             onStageChange(previous, stage);
         }
@@ -108,6 +126,7 @@ public class EntityOptimizer implements AdaptiveModule {
         interpolationRate = 1.0f;
         animationTickSkip = 1;
         highPriorityEntities.clear();
+        restoreSettings();
     }
 
     @Override
@@ -253,6 +272,29 @@ public class EntityOptimizer implements AdaptiveModule {
         EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
         if (dispatcher != null && animationLODDistance < Double.MAX_VALUE) {
             float renderDistance = (float) Math.max(16.0, animationLODDistance * 1.5);
+        }
+    }
+
+    private void saveSettings() {
+        if (!settingsSaved) {
+            Options options = Minecraft.getInstance().options;
+            savedEntityDistance = options.entityDistanceScaling().get();
+            settingsSaved = true;
+        }
+    }
+
+    private void restoreSettings() {
+        if (settingsSaved && savedEntityDistance > 0) {
+            applyEntityDistance(savedEntityDistance);
+        }
+        savedEntityDistance = -1;
+        settingsSaved = false;
+    }
+
+    private void applyEntityDistance(double value) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.options != null) {
+            minecraft.options.entityDistanceScaling().set(value);
         }
     }
 }

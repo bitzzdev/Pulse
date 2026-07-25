@@ -22,6 +22,10 @@ public class WeatherOptimizer implements AdaptiveModule {
     private boolean weatherEffectsEnabled = true;
     private int previousRainParticles = 0;
 
+    private boolean settingsSaved;
+    private double savedRainLevel = -1;
+    private double savedThunderLevel = -1;
+
     @Override
     public void initialize() {
     }
@@ -65,6 +69,13 @@ public class WeatherOptimizer implements AdaptiveModule {
     public void update(OptimizationStage stage) {
         OptimizationStage previous = currentStage;
         currentStage = stage;
+
+        if (stage == OptimizationStage.NORMAL) {
+            restoreWeather();
+        } else {
+            saveSettings();
+        }
+
         int ordinal = stage.ordinal();
         particleCountFactor = PARTICLE_COUNT_FACTORS[Math.min(ordinal, PARTICLE_COUNT_FACTORS.length - 1)];
         renderDistanceFactor = RENDER_DISTANCE_FACTORS[Math.min(ordinal, RENDER_DISTANCE_FACTORS.length - 1)];
@@ -156,23 +167,58 @@ public class WeatherOptimizer implements AdaptiveModule {
         return thunderIntensityFactor;
     }
 
-    private void applyWeatherSettings() {
-        ClientLevel level = getClientLevel();
-        if (level == null) {
-            return;
+    private void saveSettings() {
+        if (!settingsSaved) {
+            ClientLevel level = getClientLevel();
+            savedRainLevel = level != null ? level.getRainLevel(1.0f) : 0;
+            savedThunderLevel = level != null ? level.getThunderLevel(1.0f) : 0;
+            settingsSaved = true;
         }
     }
 
-    private void clearWeatherEffects() {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.levelRenderer != null && minecraft.level != null) {
-            if (minecraft.level.isThundering() || minecraft.level.isRaining()) {
-                Pulse.LOGGER.debug("Clearing weather visual effects due to EMERGENCY stage");
+    private void restoreSettings() {
+        if (settingsSaved) {
+            ClientLevel level = getClientLevel();
+            if (level != null) {
+                if (savedRainLevel >= 0) {
+                    level.setRainLevel((float) savedRainLevel);
+                }
+                if (savedThunderLevel >= 0) {
+                    level.setThunderLevel((float) savedThunderLevel);
+                }
             }
+        }
+        savedRainLevel = -1;
+        savedThunderLevel = -1;
+        settingsSaved = false;
+    }
+
+    private void applyWeatherSettings() {
+        ClientLevel level = getClientLevel();
+        if (level == null || !settingsSaved) {
+            return;
+        }
+        float weatherFactor = switch (currentStage) {
+            case MINOR -> 0.5f;
+            case MODERATE -> 0.25f;
+            case HEAVY -> 0.1f;
+            case EMERGENCY -> 0.0f;
+            default -> 1.0f;
+        };
+        level.setRainLevel((float) savedRainLevel * weatherFactor);
+        level.setThunderLevel((float) savedThunderLevel * weatherFactor);
+    }
+
+    private void clearWeatherEffects() {
+        ClientLevel level = getClientLevel();
+        if (level != null) {
+            level.setRainLevel(0.0f);
+            level.setThunderLevel(0.0f);
         }
     }
 
     private void restoreWeather() {
+        restoreSettings();
     }
 
     public boolean shouldSkipWeatherParticle(double distance) {

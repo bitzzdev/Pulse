@@ -6,6 +6,8 @@ import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
+import net.minecraft.client.ParticleStatus;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleEngine;
@@ -41,6 +43,9 @@ public class ParticleOptimizer implements AdaptiveModule {
 
     private final Set<Particle> mergedParticles = new HashSet<>();
     private final Set<String> criticalParticleTypes = new HashSet<>();
+
+    private boolean settingsSaved;
+    private ParticleStatus savedParticleStatus = null;
 
     public ParticleOptimizer() {
         criticalParticleTypes.add("effect");
@@ -80,6 +85,7 @@ public class ParticleOptimizer implements AdaptiveModule {
     @Override
     public void disable() {
         this.enabled = false;
+        restoreSettings();
     }
 
     @Override
@@ -91,6 +97,13 @@ public class ParticleOptimizer implements AdaptiveModule {
     public void update(OptimizationStage stage) {
         OptimizationStage previous = currentStage;
         currentStage = stage;
+
+        if (stage == OptimizationStage.NORMAL) {
+            restoreSettings();
+        } else {
+            saveSettings();
+        }
+
         int ordinal = stage.ordinal();
         budgetFactor = BUDGET_FACTORS[Math.min(ordinal, BUDGET_FACTORS.length - 1)];
         spawnProbability = SPAWN_PROBABILITIES[Math.min(ordinal, SPAWN_PROBABILITIES.length - 1)];
@@ -104,6 +117,11 @@ public class ParticleOptimizer implements AdaptiveModule {
             distanceThreshold = DEFAULT_DISTANCE_THRESHOLD * budgetFactor;
         }
         maxParticles = (int) (getBaseMaxParticles() * budgetFactor);
+
+        if (stage != OptimizationStage.NORMAL) {
+            applyParticleSettings();
+        }
+
         if (stage != previous) {
             onStageChange(previous, stage);
         }
@@ -125,6 +143,7 @@ public class ParticleOptimizer implements AdaptiveModule {
         mergeRadius = DEFAULT_MERGE_RADIUS;
         distanceThreshold = DEFAULT_DISTANCE_THRESHOLD;
         mergedParticles.clear();
+        restoreSettings();
     }
 
     @Override
@@ -256,5 +275,46 @@ public class ParticleOptimizer implements AdaptiveModule {
             return;
         }
         mergedParticles.clear();
+    }
+
+    private void saveSettings() {
+        if (!settingsSaved) {
+            try {
+                Options options = Minecraft.getInstance().options;
+                savedParticleStatus = options.particles().get();
+            } catch (Exception e) {
+                Pulse.LOGGER.warn("Could not save particle option: {}", e.getMessage());
+            }
+            settingsSaved = true;
+        }
+    }
+
+    private void restoreSettings() {
+        if (settingsSaved && savedParticleStatus != null) {
+            try {
+                Options options = Minecraft.getInstance().options;
+                options.particles().set(savedParticleStatus);
+            } catch (Exception e) {
+                Pulse.LOGGER.warn("Could not restore particle option: {}", e.getMessage());
+            }
+        }
+        savedParticleStatus = null;
+        settingsSaved = false;
+    }
+
+    private void applyParticleSettings() {
+        try {
+            Options options = Minecraft.getInstance().options;
+            ParticleStatus target = switch (currentStage) {
+                case NORMAL -> savedParticleStatus != null ? savedParticleStatus : ParticleStatus.ALL;
+                case MINOR -> ParticleStatus.ALL;
+                case MODERATE -> ParticleStatus.DECREASED;
+                case HEAVY -> ParticleStatus.MINIMAL;
+                case EMERGENCY -> ParticleStatus.MINIMAL;
+            };
+            options.particles().set(target);
+        } catch (Exception e) {
+            Pulse.LOGGER.warn("Could not apply particle option: {}", e.getMessage());
+        }
     }
 }

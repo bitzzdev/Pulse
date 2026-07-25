@@ -4,7 +4,9 @@ import io.github.pulse.Pulse;
 import io.github.pulse.api.AdaptiveModule;
 import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
+import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 
 public class CloudOptimizer implements AdaptiveModule {
 
@@ -21,6 +23,9 @@ public class CloudOptimizer implements AdaptiveModule {
     private boolean forceDisabled;
     private int recoveryFrame;
     private static final int RECOVERY_FRAMES = 120;
+
+    private boolean settingsSaved;
+    private CloudStatus savedCloudStatus = null;
 
     @Override
     public void initialize() {
@@ -68,6 +73,13 @@ public class CloudOptimizer implements AdaptiveModule {
         OptimizationStage previous = currentStage;
         currentStage = stage;
         int ordinal = stage.ordinal();
+
+        if (stage == OptimizationStage.NORMAL) {
+            restoreClouds();
+        } else {
+            saveSettings();
+        }
+
         if (stage == OptimizationStage.EMERGENCY) {
             forceDisabled = true;
             cloudsEnabled = false;
@@ -166,13 +178,46 @@ public class CloudOptimizer implements AdaptiveModule {
         return Math.min(1.0f, (float) recoveryFrame / RECOVERY_FRAMES);
     }
 
+    private void saveSettings() {
+        if (!settingsSaved) {
+            Options options = Minecraft.getInstance().options;
+            savedCloudStatus = options.cloudStatus().get();
+            settingsSaved = true;
+        }
+    }
+
+    private void restoreSettings() {
+        if (settingsSaved && savedCloudStatus != null) {
+            applyCloudState(savedCloudStatus);
+        }
+        savedCloudStatus = null;
+        settingsSaved = false;
+        recoveryFrame = 0;
+        forceDisabled = false;
+    }
+
     private void applyCloudState(boolean enabled) {
+        Options options = Minecraft.getInstance().options;
+        if (enabled) {
+            if (settingsSaved && savedCloudStatus != null) {
+                options.cloudStatus().set(savedCloudStatus);
+            } else {
+                options.cloudStatus().set(CloudStatus.FANCY);
+            }
+        } else {
+            options.cloudStatus().set(CloudStatus.OFF);
+        }
+    }
+
+    private void applyCloudState(CloudStatus status) {
+        Options options = Minecraft.getInstance().options;
+        if (options != null) {
+            options.cloudStatus().set(status);
+        }
     }
 
     private void restoreClouds() {
-        applyCloudState(true);
-        recoveryFrame = 0;
-        forceDisabled = false;
+        restoreSettings();
     }
 
     public boolean shouldSkipCloudUpdate(int frameCount) {

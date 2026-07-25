@@ -9,10 +9,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.CloudStatus;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
-import net.minecraft.client.multiplayer.ClientLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,14 +18,6 @@ public class PulseClient implements ClientModInitializer {
 
     private static OptimizationStage lastCaptionStage = null;
     private static int captionCooldown = 0;
-
-    private static final double[] ENTITY_DIST_VALUES = {1.0, 1.0, 0.5, 0.5, 0.5};
-
-    private static double savedEntityDistance = -1;
-    private static CloudStatus savedCloudStatus = null;
-    private static double savedRainLevel = -1;
-    private static double savedThunderLevel = -1;
-    private static boolean settingsSaved = false;
 
     @Override
     public void onInitializeClient() {
@@ -44,8 +32,6 @@ public class PulseClient implements ClientModInitializer {
             Pulse.getPressureEngine().update();
             Pulse.getAdaptiveManager().update();
             Pulse.getModuleManager().update(PulseAPI.getOptimizationStage());
-
-            applyOptimizations(client);
 
             if (captionCooldown > 0) captionCooldown--;
             if (captionCooldown <= 0) {
@@ -66,69 +52,6 @@ public class PulseClient implements ClientModInitializer {
         });
 
         LOGGER.info("Pulse client initialized");
-    }
-
-    private static void applyOptimizations(Minecraft client) {
-        OptimizationStage stage = PulseAPI.getOptimizationStage();
-        Options options = client.options;
-        ClientLevel level = client.level;
-
-        if (stage == OptimizationStage.NORMAL) {
-            restoreSettings(options, level);
-            return;
-        }
-
-        if (!settingsSaved) {
-            savedEntityDistance = options.entityDistanceScaling().get();
-            savedCloudStatus = options.cloudStatus().get();
-            if (level != null) {
-                savedRainLevel = level.getRainLevel(1.0f);
-                savedThunderLevel = level.getThunderLevel(1.0f);
-            }
-            settingsSaved = true;
-        }
-
-        int ordinal = stage.ordinal();
-
-        options.entityDistanceScaling().set(ENTITY_DIST_VALUES[ordinal]);
-
-        if (ordinal >= OptimizationStage.MODERATE.ordinal()) {
-            options.cloudStatus().set(CloudStatus.OFF);
-        } else {
-            options.cloudStatus().set(savedCloudStatus);
-        }
-
-        if (level != null) {
-            float weatherFactor = switch (stage) {
-                case MINOR -> 0.5f;
-                case MODERATE -> 0.25f;
-                case HEAVY -> 0.1f;
-                case EMERGENCY -> 0.0f;
-                default -> 1.0f;
-            };
-            level.setRainLevel((float) savedRainLevel * weatherFactor);
-            level.setThunderLevel((float) savedThunderLevel * weatherFactor);
-        }
-    }
-
-    private static void restoreSettings(Options options, ClientLevel level) {
-        if (settingsSaved) {
-            if (savedEntityDistance > 0) {
-                options.entityDistanceScaling().set(savedEntityDistance);
-            }
-            if (savedCloudStatus != null) {
-                options.cloudStatus().set(savedCloudStatus);
-            }
-            if (level != null && savedRainLevel >= 0) {
-                level.setRainLevel((float) savedRainLevel);
-                level.setThunderLevel((float) savedThunderLevel);
-            }
-            savedEntityDistance = -1;
-            savedCloudStatus = null;
-            savedRainLevel = -1;
-            savedThunderLevel = -1;
-            settingsSaved = false;
-        }
     }
 
     public static void showCaption(String text) {
