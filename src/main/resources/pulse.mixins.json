@@ -3,7 +3,9 @@
   "package": "io.github.pulse.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "ParticleEngineMixin"
+    "ParticleEngineMixin",
+    "EntityRenderMixin",
+    "LevelRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
