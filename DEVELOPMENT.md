@@ -43,10 +43,10 @@ Testing and CI are run via GitHub Actions (`build.yml`).
 3. Add toggles in `ConfigManager.buildScreen()` if user-controllable.
 4. Update `README.md` and `ARCHITECTURE.md`.
 
-## Notes on Minecraft 26.2
+## Notes on the Current Minecraft Version
 
-- The rendering system was rewritten (two-phase extraction + submit nodes).
+The rendering system was rewritten (two-phase extraction + submit nodes):
 - `WorldRenderEvents` was removed; use `LevelRenderEvents` / `LevelExtractionEvents`.
 - `GraphicsStatus` / `graphicsMode()` were removed.
 - Old mixin targets (`EntityRenderDispatcher.render`, `ParticleEngine.particles`, etc.) were renamed or restructured.
-- Fabric API 0.155.2+26.2 is required.
+- See `gradle.properties` for the exact Minecraft/Fabric API versions this project targets.

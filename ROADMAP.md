@@ -29,7 +29,7 @@
 ## Planned Work
 
 ### Short Term (Module Wiring)
-- Research Fabric API 26.2 `LevelExtractionEvents` / `LevelRenderEvents` for correct hook points
+- Research `LevelExtractionEvents` / `LevelRenderEvents` (current Minecraft version) for correct hook points
 - Wire ParticleOptimizer into particle extraction/render pipeline
 - Wire remaining modules using LevelRenderEvents or lightweight mixins
 - Connect module savings to BudgetSystem so the overlay shows real impact

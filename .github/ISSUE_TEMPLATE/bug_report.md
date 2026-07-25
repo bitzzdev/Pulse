@@ -26,8 +26,8 @@ If applicable, add screenshots or a short video showing the issue.
 
 ## Environment
 
-- **Minecraft version**: 26.2
-- **Fabric Loader version**: 0.19.3+
+- **Minecraft version**: (e.g. 26.2)
+- **Fabric Loader version**: (e.g. 0.19.3+)
 - **Pulse version**: e.g. 0.1.0-alpha
 - **Other mods installed**: List mods from your `mods/` folder
 - **Java version**: e.g. Java 25

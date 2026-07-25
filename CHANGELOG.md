@@ -3,7 +3,7 @@
 ## 0.1.0-alpha - Pre-release
 
 ### Added
-- Project scaffold with Fabric Loom build system (Mojmap 26.2)
+- Project scaffold with Fabric Loom build system (see `gradle.properties` for version pins)
 - `PerformanceEngine` — frametime/FPS tracking with rolling windows (1s/5s/15s/60s)
 - `PressureEngine` — weighted normalisation of metrics → 0–100 pressure score
 - `AdaptiveManager` — stage transitions (Normal→Emergency) with recovery delay

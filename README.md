@@ -1,8 +1,8 @@
 # Pulse — Adaptive Performance Manager for Minecraft
 
-![Minecraft](https://img.shields.io/badge/Minecraft-26.2-blueviolet)
-![Fabric](https://img.shields.io/badge/Fabric-0.19.3%2B-orange)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Build](https://img.shields.io/github/actions/workflow/status/bitzCognautic/Pulse/build.yml?branch=main&label=build)
+![License](https://img.shields.io/github/license/bitzCognautic/Pulse)
+![Fabric](https://img.shields.io/badge/Fabric%20Loader-0.19.3%2B-orange)
 
 Pulse continuously monitors framerate performance and automatically adjusts cosmetic settings to maintain smooth gameplay. When performance recovers, changes are gradually reversed.
 
@@ -47,9 +47,8 @@ See [ROADMAP.md](ROADMAP.md) for future plans.
 
 ## Requirements
 
-- **Minecraft 26.2** (Mojmap)
-- **Fabric Loader 0.19.3+**
-- **Fabric API 0.155.2+**
+See `gradle.properties` for exact version pins. Current values:
+- **Minecraft** (Mojmap) + **Fabric Loader** + **Fabric API**
 - **Java 25**
 
 ## Building from Source

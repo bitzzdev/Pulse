@@ -90,8 +90,8 @@ io.github.pulse/
 
 `AdaptiveModule` is an interface with `initialize()`, `update(stage)`, `enable()`, `disable()`, `recover()`, `shutdown()`. All 9 modules implement it. Their `update()` is called every tick with the current stage. However, none of them hook into Minecraft's rendering systems because:
 
-- **26.2 rewrote rendering** — old mixin targets (`LevelRenderer`, `EntityRenderDispatcher`, `ParticleEngine`) were renamed/restructured
-- **No Fabric events exist** for per-entity or per-particle culling in the new 26.2 pipeline
-- The module framework is structural scaffolding awaiting correct 26.2 hooks
+- **The current Mojmap version rewrote rendering** — old mixin targets (`LevelRenderer`, `EntityRenderDispatcher`, `ParticleEngine`) were renamed/restructured
+- **No Fabric events exist** for per-entity or per-particle culling in the current pipeline
+- The module framework is structural scaffolding awaiting correct Fabric event hooks
 
 Real optimizations bypass the module system entirely and directly change `Options` and `ClientLevel` state in `PulseClient`.
