@@ -45,7 +45,7 @@ jobs:
           awk '/^## \[/{if (found) exit} found{print} /^## \['"${{ steps.get_version.outputs.version }}"'\]/{found=1}' CHANGELOG.md > release_notes.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Pulse ${{ steps.get_version.outputs.version }}
           body_path: release_notes.md
