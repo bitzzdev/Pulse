@@ -6,9 +6,15 @@
 - WeatherOptimizer: now owns `level.setRainLevel()`/`setThunderLevel()` save/apply/restore
 - PulseClient: stripped of all direct optimization logic (pure orchestration)
 - ParticleOptimizer: `ParticleStatus` enum does not exist in 26.2 Mojmap; module kept as internal-parameter-only
-- Mixin infrastructure: 5 mixins added (`ParticleEngineMixin`, `EntityRenderDispatcherMixin`, `SectionRenderDispatcherMixin`, `GuiMixin`, `ChatComponentMixin`), all with `require = 0` for version compatibility
+- Mixin infrastructure: 5 mixins added, all with `require = 0`:
+  - `ParticleEngineMixin` → `ParticleEngine#add(Particle)` ✓ stable
+  - `EntityRenderDispatcherMixin` → `EntityRenderDispatcher#shouldRender(Entity, Frustum, ...)` ✓ stable
+  - `SectionRenderDispatcherMixin` → `SectionRenderDispatcher#schedule(CompileTask)` (was `scheduleCompile`)
+  - `HudMixin` → `Hud#renderChat(Graphics, DeltaTracker)`, `renderEffects`, `renderTooltip` (was `Gui`, params changed from `float` to `DeltaTracker`)
+  - `ChatComponentMixin` → `ChatComponent#tick()` ✓ stable
+- HudOverlay: `GuiGraphicsExtractor` → `GuiGraphics` (removed in 26.2)
 - Mixin config: `pulse.mixins.json` updated with `"defaultRequire": 0` and 5 client mixin entries
-- ARCHITECTURE.md: mixin table added, six-module hook strategy documented
+- ARCHITECTURE.md: mixin table updated with 26.2-correct targets
 - Build via GitHub Actions only (no local `gradlew build`)
 
 ## 0.1.0-alpha - Pre-release

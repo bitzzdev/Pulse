@@ -101,7 +101,7 @@ All untargeted modules now have companion mixin classes in `io.github.pulse.mixi
 | `ParticleEngineMixin` | `ParticleEngine#add(Particle)` | ParticleOptimizer |
 | `EntityRenderDispatcherMixin` | `EntityRenderDispatcher#shouldRender(Entity, ...)` | AnimationOptimizer |
 | `SectionRenderDispatcherMixin` | `SectionRenderDispatcher#scheduleCompile` | ChunkUploadOptimizer |
-| `GuiMixin` | `Gui#renderChat`, `Gui#renderTooltip`, `Gui#renderEffects` | UIOptimizer |
+| `GuiMixin` | `Hud#renderChat(GuiGraphics, DeltaTracker)`, `renderTooltip`, `renderEffects` | UIOptimizer |
 | `ChatComponentMixin` | `ChatComponent#tick` | UIOptimizer |
 
 Three modules wire directly into Minecraft's public API:

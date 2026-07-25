@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(SectionRenderDispatcher.class)
 public class SectionRenderDispatcherMixin {
 
-    @Inject(method = "scheduleCompile", at = @At("HEAD"), cancellable = true, require = 0)
-    private void pulse$onScheduleCompile(CallbackInfo ci) {
+    @Inject(method = "schedule(Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher$RenderSection$CompileTask;)V", at = @At("HEAD"), cancellable = true, require = 0)
+    private void pulse$onSchedule(SectionRenderDispatcher.RenderSection.CompileTask task, CallbackInfo ci) {
         ChunkUploadOptimizer opt = (ChunkUploadOptimizer) Pulse.getModuleManager().getModule(ModuleType.CHUNKS);
         if (opt != null && opt.isEnabled() && opt.getMaxUploadsPerFrame() <= 0) {
             ci.cancel();
