@@ -36,8 +36,27 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Upload build artifacts
+      - name: Separate JARs for upload
+        shell: bash
+        run: |
+          mkdir -p build/artifacts/main build/artifacts/sources
+          for f in build/libs/*.jar; do
+            case "$f" in
+              *-sources.jar) cp "$f" build/artifacts/sources/ ;;
+              *)             cp "$f" build/artifacts/main/ ;;
+            esac
+          done
+
+      - name: Upload main JAR
         uses: actions/upload-artifact@v4
         with:
-          name: pulse-artifacts
-          path: build/libs/*.jar
+          name: pulse
+          path: build/artifacts/main/*.jar
+          if-no-files-found: error
+
+      - name: Upload sources JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulse-sources
+          path: build/artifacts/sources/*.jar
+          if-no-files-found: ignore
