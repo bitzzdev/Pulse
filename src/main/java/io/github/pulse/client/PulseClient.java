@@ -1,6 +1,7 @@
 package io.github.pulse.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import io.github.pulse.Pulse;
 import io.github.pulse.api.OptimizationStage;
 import io.github.pulse.api.PulseAPI;
 import io.github.pulse.overlay.HudOverlay;
