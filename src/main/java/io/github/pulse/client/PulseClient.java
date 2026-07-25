@@ -68,7 +68,7 @@ public class PulseClient implements ClientModInitializer {
                         case HEAVY -> "Pulse: Heavy optimization";
                         case EMERGENCY -> "Pulse: Emergency optimization";
                     };
-                    showActionBar(caption);
+                    showCaption(caption);
                     captionCooldown = 100;
                 }
             }
@@ -77,17 +77,10 @@ public class PulseClient implements ClientModInitializer {
         LOGGER.info("Pulse client initialized");
     }
 
-    public static void showActionBar(String text) {
+    public static void showCaption(String text) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null) {
-            minecraft.player.sendMessage(Component.literal(text), true);
-        }
-    }
-
-    public static void showActionBar(Component component) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player != null) {
-            minecraft.player.sendMessage(component, true);
+            minecraft.player.sendSystemMessage(Component.literal(text));
         }
     }
 
