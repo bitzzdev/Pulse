@@ -36,4 +36,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Upload JARs
+        uses: actions/upload-artifact@v7
+        with:
+          name: jars
+          path: build/libs/*.jar
+          if-no-files-found: error
+
 
