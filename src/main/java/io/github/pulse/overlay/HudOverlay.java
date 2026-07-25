@@ -8,10 +8,11 @@ import io.github.pulse.config.ConfigManager;
 import io.github.pulse.config.PulseConfig.OverlayPosition;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.HudElementRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
-public class HudOverlay implements HudRenderCallback {
+public class HudOverlay {
     private static final Logger LOGGER = LoggerFactory.getLogger("pulse-overlay");
     private static final long AUTO_HIDE_DELAY_MS = 10000;
     private static final long FADE_DURATION_MS = 500;
@@ -63,7 +64,10 @@ public class HudOverlay implements HudRenderCallback {
     private boolean initialized = false;
 
     public void initialize() {
-        HudRenderCallback.EVENT.register(this);
+        HudElementRegistry.addLast(
+            Identifier.of("pulse", "overlay"),
+            (graphics, deltaTracker) -> render(graphics)
+        );
         this.lastActivityTime = System.currentTimeMillis();
         this.animationAlpha = 1.0f;
         this.initialized = true;
@@ -85,8 +89,7 @@ public class HudOverlay implements HudRenderCallback {
         this.animationAlpha = 1.0f;
     }
 
-    @Override
-    public void render(DrawContext context, float tickDelta) {
+    private void render(GuiGraphicsExtractor context) {
         if (!initialized || !visible) return;
 
         long now = System.currentTimeMillis();
@@ -207,7 +210,7 @@ public class HudOverlay implements HudRenderCallback {
         return changed;
     }
 
-    private void renderOverlay(DrawContext context) {
+    private void renderOverlay(GuiGraphicsExtractor context) {
         Font font = Minecraft.getInstance().font;
         if (font == null) return;
 
@@ -257,7 +260,7 @@ public class HudOverlay implements HudRenderCallback {
         }
     }
 
-    private void renderSparkline(DrawContext context, int x, int y, int width) {
+    private void renderSparkline(GuiGraphicsExtractor context, int x, int y, int width) {
         int samples = Math.min(historyCount, SPARKLINE_SAMPLES);
         if (samples < 2) return;
 

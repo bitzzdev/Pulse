@@ -31,6 +31,10 @@ public class EntityOptimizer implements AdaptiveModule {
     private final Set<Integer> highPriorityEntities = new HashSet<>();
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public ModuleType getType() {
         return ModuleType.ENTITIES;
     }
@@ -56,18 +60,18 @@ public class EntityOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
-        float saving = 0.0f;
+    public long getEstimatedSavings() {
+        long saving = 0L;
         if (animationFrequencyFactor < 1.0f) {
-            saving += (1.0f - animationFrequencyFactor) * 0.5f;
+            saving += (long) ((1.0f - animationFrequencyFactor) * 50L);
         }
         if (skipCosmetics) {
-            saving += 0.15f;
+            saving += 15L;
         }
         if (interpolationRate < 1.0f) {
-            saving += (1.0f - interpolationRate) * 0.2f;
+            saving += (long) ((1.0f - interpolationRate) * 20L);
         }
-        return Math.min(0.85f, saving);
+        return Math.min(85L, saving);
     }
 
     @Override
@@ -103,6 +107,26 @@ public class EntityOptimizer implements AdaptiveModule {
         interpolationRate = 1.0f;
         animationTickSkip = 1;
         highPriorityEntities.clear();
+    }
+
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return 0.0;
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.MEDIUM;
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
     }
 
     public boolean shouldRenderEntity(Entity entity) {

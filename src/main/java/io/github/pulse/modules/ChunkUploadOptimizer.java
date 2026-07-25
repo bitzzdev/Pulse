@@ -7,8 +7,8 @@ import io.github.pulse.api.OptimizationStage;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.chunk.BuiltChunk;
-import net.minecraft.client.renderer.chunk.ChunkBuilder;
+import net.minecraft.client.renderer.chunk.SectionCompiler;
+import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
@@ -42,6 +42,10 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
     }
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public ModuleType getType() {
         return ModuleType.CHUNKS;
     }
@@ -67,13 +71,13 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
+    public long getEstimatedSavings() {
         if (maxUploadsPerFrame == Integer.MAX_VALUE) {
-            return 0.0f;
+            return 0L;
         }
         int base = 64;
         float reduction = 1.0f - (float) maxUploadsPerFrame / base;
-        return Math.min(0.7f, reduction * 0.9f);
+        return (long) (Math.min(0.7f, reduction * 0.9f) * 100);
     }
 
     @Override
@@ -116,7 +120,27 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
         uploadsThisFrame = 0;
     }
 
-    public void enqueueUpload(BuiltChunk chunk) {
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return (double) queuedUploads / Math.max(1, maxUploadsPerFrame);
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.HIGH;
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
+    }
+
+    public void enqueueUpload(SectionRenderDispatcher.RenderSection chunk) {
         if (chunk == null) {
             return;
         }
@@ -125,8 +149,8 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
         queuedUploads++;
     }
 
-    public List<BuiltChunk> getUploadsForFrame() {
-        List<BuiltChunk> uploads = new ArrayList<>();
+    public List<SectionRenderDispatcher.RenderSection> getUploadsForFrame() {
+        List<SectionRenderDispatcher.RenderSection> uploads = new ArrayList<>();
         long frameStart = System.nanoTime();
         int count = 0;
         while (!uploadQueue.isEmpty() && count < maxUploadsPerFrame) {
@@ -144,7 +168,7 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
         return uploads;
     }
 
-    public void markUploadComplete(BuiltChunk chunk) {
+    public void markUploadComplete(SectionRenderDispatcher.RenderSection chunk) {
         uploadsThisFrame = Math.max(0, uploadsThisFrame - 1);
     }
 
@@ -164,7 +188,7 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
         return priorityDistanceWeight;
     }
 
-    private double calculatePriority(BuiltChunk chunk) {
+    private double calculatePriority(SectionRenderDispatcher.RenderSection chunk) {
         Minecraft minecraft = Minecraft.getInstance();
         Camera camera = minecraft.gameRenderer.getMainCamera();
         Vec3 cameraPos = camera.getPosition();
@@ -224,10 +248,10 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
     }
 
     private static class ChunkUploadTask {
-        final BuiltChunk chunk;
+        final SectionRenderDispatcher.RenderSection chunk;
         final double priority;
 
-        ChunkUploadTask(BuiltChunk chunk, double priority) {
+        ChunkUploadTask(SectionRenderDispatcher.RenderSection chunk, double priority) {
             this.chunk = chunk;
             this.priority = priority;
         }

@@ -5,10 +5,10 @@ import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
 import io.github.pulse.config.PulseConfig.OverlayPosition;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
-import me.shedaniel.clothconfig2.api.ConfigCategoryBuilder;
+import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,78 +60,78 @@ public class ConfigManager implements ConfigScreenFactory<Screen> {
 
         ConfigBuilder builder = ConfigBuilder.create()
             .setParentScreen(parent)
-            .setTitle(Text.literal("Pulse Configuration"));
+            .setTitle(Component.literal("Pulse Configuration"));
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-        ConfigCategoryBuilder general = builder.getOrCreateCategory(Text.literal("General"));
+        ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
         general.addEntry(entryBuilder
-            .startIntSlider(Text.literal("Target FPS"), cfg.getTargetFps(), 30, 240)
+            .startIntSlider(Component.literal("Target FPS"), cfg.getTargetFps(), 30, 240)
             .setDefaultValue(60)
-            .setTextGetter(value -> Text.literal(value + " FPS"))
+            .setTextGetter(value -> Component.literal(value + " FPS"))
             .setSaveConsumer(cfg::setTargetFps)
             .build());
         general.addEntry(entryBuilder
-            .startDoubleSlider(Text.literal("Pressure Sensitivity"), cfg.getPressureSensitivity(), 0.5, 2.0)
+            .startDoubleSlider(Component.literal("Pressure Sensitivity"), cfg.getPressureSensitivity(), 0.5, 2.0)
             .setDefaultValue(1.0)
-            .setTextGetter(value -> Text.literal(String.format("%.2f", value)))
+            .setTextGetter(value -> Component.literal(String.format("%.2f", value)))
             .setSaveConsumer(cfg::setPressureSensitivity)
             .build());
         general.addEntry(entryBuilder
-            .startDoubleSlider(Text.literal("Recovery Speed"), cfg.getRecoverySpeed(), 0.1, 2.0)
+            .startDoubleSlider(Component.literal("Recovery Speed"), cfg.getRecoverySpeed(), 0.1, 2.0)
             .setDefaultValue(1.0)
-            .setTextGetter(value -> Text.literal(String.format("%.2f", value)))
+            .setTextGetter(value -> Component.literal(String.format("%.2f", value)))
             .setSaveConsumer(cfg::setRecoverySpeed)
             .build());
         general.addEntry(entryBuilder
-            .startEnumSelector(Text.literal("Max Optimization Stage"), OptimizationStage.class, cfg.getMaxOptimizationStage())
+            .startEnumSelector(Component.literal("Max Optimization Stage"), OptimizationStage.class, cfg.getMaxOptimizationStage())
             .setDefaultValue(OptimizationStage.EMERGENCY)
             .setSaveConsumer(cfg::setMaxOptimizationStage)
             .build());
 
-        ConfigCategoryBuilder performance = builder.getOrCreateCategory(Text.literal("Performance"));
+        ConfigCategory performance = builder.getOrCreateCategory(Component.literal("Performance"));
         performance.addEntry(entryBuilder
-            .startIntSlider(Text.literal("Target FPS"), cfg.getTargetFps(), 30, 240)
+            .startIntSlider(Component.literal("Target FPS"), cfg.getTargetFps(), 30, 240)
             .setDefaultValue(60)
-            .setTextGetter(value -> Text.literal(value + " FPS"))
+            .setTextGetter(value -> Component.literal(value + " FPS"))
             .setSaveConsumer(cfg::setTargetFps)
             .build());
 
-        ConfigCategoryBuilder modules = builder.getOrCreateCategory(Text.literal("Modules"));
+        ConfigCategory modules = builder.getOrCreateCategory(Component.literal("Modules"));
         for (ModuleType type : ModuleType.values()) {
             String displayName = type.name().charAt(0) + type.name().substring(1).toLowerCase();
             modules.addEntry(entryBuilder
-                .startBooleanToggle(Text.literal(displayName), cfg.isModuleEnabled(type))
+                .startBooleanToggle(Component.literal(displayName), cfg.isModuleEnabled(type))
                 .setDefaultValue(true)
                 .setSaveConsumer(value -> cfg.setModuleEnabled(type, value))
                 .build());
         }
 
-        ConfigCategoryBuilder display = builder.getOrCreateCategory(Text.literal("Display"));
+        ConfigCategory display = builder.getOrCreateCategory(Component.literal("Display"));
         display.addEntry(entryBuilder
-            .startBooleanToggle(Text.literal("Show Overlay"), cfg.isShowOverlay())
+            .startBooleanToggle(Component.literal("Show Overlay"), cfg.isShowOverlay())
             .setDefaultValue(true)
             .setSaveConsumer(cfg::setShowOverlay)
             .build());
         display.addEntry(entryBuilder
-            .startEnumSelector(Text.literal("Overlay Position"), OverlayPosition.class, cfg.getOverlayPosition())
+            .startEnumSelector(Component.literal("Overlay Position"), OverlayPosition.class, cfg.getOverlayPosition())
             .setDefaultValue(OverlayPosition.TOP_LEFT)
             .setSaveConsumer(cfg::setOverlayPosition)
             .build());
         display.addEntry(entryBuilder
-            .startBooleanToggle(Text.literal("Show Frame Time Graph"), cfg.isShowFrameTimeGraph())
+            .startBooleanToggle(Component.literal("Show Frame Time Graph"), cfg.isShowFrameTimeGraph())
             .setDefaultValue(false)
             .setSaveConsumer(cfg::setShowFrameTimeGraph)
             .build());
 
-        ConfigCategoryBuilder advanced = builder.getOrCreateCategory(Text.literal("Advanced"));
+        ConfigCategory advanced = builder.getOrCreateCategory(Component.literal("Advanced"));
         advanced.addEntry(entryBuilder
-            .startBooleanToggle(Text.literal("Debug Mode"), cfg.isDebugMode())
+            .startBooleanToggle(Component.literal("Debug Mode"), cfg.isDebugMode())
             .setDefaultValue(false)
             .setSaveConsumer(cfg::setDebugMode)
             .build());
         advanced.addEntry(entryBuilder
-            .startBooleanToggle(Text.literal("Experimental Features"), cfg.isExperimentalFeatures())
+            .startBooleanToggle(Component.literal("Experimental Features"), cfg.isExperimentalFeatures())
             .setDefaultValue(false)
             .setSaveConsumer(cfg::setExperimentalFeatures)
             .build());

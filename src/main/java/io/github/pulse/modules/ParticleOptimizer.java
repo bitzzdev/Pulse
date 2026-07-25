@@ -54,6 +54,10 @@ public class ParticleOptimizer implements AdaptiveModule {
     }
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public ModuleType getType() {
         return ModuleType.PARTICLES;
     }
@@ -79,8 +83,8 @@ public class ParticleOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
-        return (1.0f - budgetFactor) * 0.8f + (1.0f - spawnProbability) * 0.2f;
+    public long getEstimatedSavings() {
+        return (long) ((1.0f - budgetFactor) * 80L + (1.0f - spawnProbability) * 20L);
     }
 
     @Override
@@ -123,6 +127,26 @@ public class ParticleOptimizer implements AdaptiveModule {
         mergeRadius = DEFAULT_MERGE_RADIUS;
         distanceThreshold = DEFAULT_DISTANCE_THRESHOLD;
         mergedParticles.clear();
+    }
+
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return 0.0;
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.MEDIUM;
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
     }
 
     public boolean shouldRenderParticle(Particle particle) {

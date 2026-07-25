@@ -27,6 +27,10 @@ public class AnimationOptimizer implements AdaptiveModule {
     private int frameCounter;
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public ModuleType getType() {
         return ModuleType.ANIMATIONS;
     }
@@ -52,19 +56,19 @@ public class AnimationOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
-        float saving = 0.0f;
+    public long getEstimatedSavings() {
+        long saving = 0L;
         if (animationDistanceThreshold < Double.MAX_VALUE) {
-            saving += 0.3f;
+            saving += 30L;
         }
         if (interpolationInterval > 1) {
-            saving += (1.0f - 1.0f / interpolationInterval) * 0.3f;
+            saving += (long) ((1.0f - 1.0f / interpolationInterval) * 30L);
         }
         if (skipOffScreenAnimations) {
-            saving += 0.15f;
+            saving += 15L;
         }
-        saving += (1.0f - nonCriticalFactor) * 0.2f;
-        return Math.min(0.8f, saving);
+        saving += (long) ((1.0f - nonCriticalFactor) * 20L);
+        return Math.min(80L, saving);
     }
 
     @Override
@@ -98,6 +102,26 @@ public class AnimationOptimizer implements AdaptiveModule {
         nonCriticalFactor = 1.0f;
         skipOffScreenAnimations = false;
         frameCounter = 0;
+    }
+
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return 0.0;
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.MEDIUM;
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
     }
 
     public boolean shouldAnimateEntity(Entity entity) {

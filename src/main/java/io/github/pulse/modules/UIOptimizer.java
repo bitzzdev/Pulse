@@ -24,6 +24,10 @@ public class UIOptimizer implements AdaptiveModule {
     private int chatTickCounter;
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public ModuleType getType() {
         return ModuleType.UI;
     }
@@ -49,20 +53,20 @@ public class UIOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
-        float saving = 0.0f;
+    public long getEstimatedSavings() {
+        long saving = 0L;
         if (chatUpdateInterval > 1) {
-            saving += (1.0f - 1.0f / chatUpdateInterval) * 0.15f;
+            saving += (long) ((1.0f - 1.0f / chatUpdateInterval) * 15L);
         }
-        saving += (1.0f - tooltipDetailFactor) * 0.2f;
-        saving += (1.0f - overlayOpacityFactor) * 0.1f;
+        saving += (long) ((1.0f - tooltipDetailFactor) * 20L);
+        saving += (long) ((1.0f - overlayOpacityFactor) * 10L);
         if (reduceBackgroundRendering) {
-            saving += 0.1f;
+            saving += 10L;
         }
         if (skipParticleEffects) {
-            saving += 0.1f;
+            saving += 10L;
         }
-        return Math.min(0.5f, saving);
+        return Math.min(50L, saving);
     }
 
     @Override
@@ -98,6 +102,26 @@ public class UIOptimizer implements AdaptiveModule {
         reduceBackgroundRendering = false;
         skipParticleEffects = false;
         chatTickCounter = 0;
+    }
+
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return 0.0;
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.LOW;
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
     }
 
     public boolean shouldUpdateChat() {

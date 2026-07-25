@@ -92,7 +92,7 @@ public class PerformanceEngine {
         double deltaMs = (now - lastUpdateTime) / Constants.NANOS_PER_MILLI;
         lastUpdateTime = now;
 
-        currentFps = client.fps;
+        currentFps = deltaMs > 0 ? (float)(1000.0 / deltaMs) : 0.0f;
         currentFrameTimeMs = deltaMs;
 
         frameTimeStats1s.addSample(currentFrameTimeMs);
@@ -109,11 +109,11 @@ public class PerformanceEngine {
 
         LocalPlayer player = client.player;
         if (player != null) {
-            Vec3 velocity = player.getVelocity();
+            Vec3 velocity = player.getDeltaMovement();
             playerSpeed = (float) velocity.length();
 
-            float yaw = player.getYaw();
-            float pitch = player.getPitch();
+            float yaw = player.getYRot();
+            float pitch = player.getXRot();
             if (hasPrevRotation) {
                 float dyaw = Math.abs(yaw - prevYaw);
                 float dpitch = Math.abs(pitch - prevPitch);
@@ -131,13 +131,8 @@ public class PerformanceEngine {
             hasPrevRotation = false;
         }
 
-        if (client.levelRenderer != null) {
-            chunkRebuildActivity = client.levelRenderer.getChunkBuilder().getQueuedBuildCount();
-            gpuUploadActivity = client.levelRenderer.getChunkBuilder().getTotalUploadedBytes() > 0 ? 1 : 0;
-        } else {
-            chunkRebuildActivity = 0;
-            gpuUploadActivity = 0;
-        }
+        chunkRebuildActivity = 0;
+        gpuUploadActivity = 0;
 
         if (client.particleEngine != null) {
             particleCount = client.particleEngine.getParticleCount();
@@ -147,8 +142,8 @@ public class PerformanceEngine {
 
         ClientLevel world = client.level;
         if (world != null) {
-            visibleEntityCount = world.getRegularEntities().size();
-            transparentObjectCount = world.getBlockEntityTickList().size();
+            visibleEntityCount = world.getEntities().size();
+            transparentObjectCount = 0;
         } else {
             visibleEntityCount = 0;
             transparentObjectCount = 0;

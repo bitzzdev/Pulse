@@ -24,6 +24,10 @@ public class WeatherOptimizer implements AdaptiveModule {
     private int previousRainParticles = 0;
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public ModuleType getType() {
         return ModuleType.WEATHER;
     }
@@ -50,12 +54,12 @@ public class WeatherOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
-        float saving = 0.0f;
-        saving += (1.0f - particleCountFactor) * 0.4f;
-        saving += (1.0f - renderDistanceFactor) * 0.2f;
-        saving += (1.0f - thunderIntensityFactor) * 0.1f;
-        return Math.min(0.7f, saving);
+    public long getEstimatedSavings() {
+        long saving = 0L;
+        saving += (long) ((1.0f - particleCountFactor) * 40L);
+        saving += (long) ((1.0f - renderDistanceFactor) * 20L);
+        saving += (long) ((1.0f - thunderIntensityFactor) * 10L);
+        return Math.min(70L, saving);
     }
 
     @Override
@@ -89,6 +93,26 @@ public class WeatherOptimizer implements AdaptiveModule {
         thunderIntensityFactor = 1.0f;
         weatherEffectsEnabled = true;
         restoreWeather();
+    }
+
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return 0.0;
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.MEDIUM;
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
     }
 
     public boolean shouldRenderWeather() {

@@ -28,6 +28,10 @@ public class TransparencyOptimizer implements AdaptiveModule {
     private int sortCounter;
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public ModuleType getType() {
         return ModuleType.TRANSPARENCY;
     }
@@ -53,16 +57,16 @@ public class TransparencyOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
-        float saving = 0.0f;
+    public long getEstimatedSavings() {
+        long saving = 0L;
         if (sortInterval > 1) {
-            saving += (1.0f - 1.0f / sortInterval) * 0.35f;
+            saving += (long) ((1.0f - 1.0f / sortInterval) * 35L);
         }
-        saving += (1.0f - transparencyDistanceFactor) * 0.3f;
+        saving += (long) ((1.0f - transparencyDistanceFactor) * 30L);
         if (optimizeLeafBlocks) {
-            saving += 0.15f;
+            saving += 15L;
         }
-        return Math.min(0.7f, saving);
+        return Math.min(70L, saving);
     }
 
     @Override
@@ -102,6 +106,26 @@ public class TransparencyOptimizer implements AdaptiveModule {
         optimizeLeafBlocks = false;
         leafOptimizationDistance = Double.MAX_VALUE;
         sortCounter = 0;
+    }
+
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return 0.0;
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.MEDIUM;
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
     }
 
     public boolean shouldResortTranslucency() {

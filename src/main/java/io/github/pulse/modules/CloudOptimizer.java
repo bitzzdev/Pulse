@@ -24,6 +24,10 @@ public class CloudOptimizer implements AdaptiveModule {
     private static final int RECOVERY_FRAMES = 120;
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public ModuleType getType() {
         return ModuleType.CLOUDS;
     }
@@ -50,14 +54,14 @@ public class CloudOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
+    public long getEstimatedSavings() {
         if (!cloudsEnabled) {
-            return 0.5f;
+            return 50L;
         }
-        float saving = 0.0f;
-        saving += (1.0f - renderDistanceFactor) * 0.4f;
-        saving += (1.0f - densityFactor) * 0.4f;
-        return Math.min(0.8f, saving);
+        long saving = 0L;
+        saving += (long) ((1.0f - renderDistanceFactor) * 40L);
+        saving += (long) ((1.0f - densityFactor) * 40L);
+        return Math.min(80L, saving);
     }
 
     @Override
@@ -116,6 +120,26 @@ public class CloudOptimizer implements AdaptiveModule {
         forceDisabled = false;
         recoveryFrame = 0;
         restoreClouds();
+    }
+
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return 0.0;
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.LOW;
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
     }
 
     public boolean shouldRenderClouds() {
