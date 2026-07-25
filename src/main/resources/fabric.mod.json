@@ -5,6 +5,9 @@
   "name": "Pulse",
   "description": "Adaptive Performance Manager for Minecraft",
   "environment": "client",
+  "mixins": [
+    "pulse.mixins.json"
+  ],
   "entrypoints": {
     "main": [
       "io.github.pulse.Pulse"
