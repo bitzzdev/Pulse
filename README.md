@@ -6,37 +6,32 @@
 
 Pulse continuously monitors framerate performance and automatically adjusts cosmetic settings to maintain smooth gameplay. When performance recovers, changes are gradually reversed.
 
-**Status: Pre-alpha.** The core engine (FPS monitoring, pressure scoring, stage transitions) works. Real game optimizations are limited — see below.
+**Status: Pre-alpha.** The core engine works. 3 of 9 modules are wired to Minecraft's Options API; the rest track internal parameters only (see below).
 
-## What Works Now
+## What Works
 
-- **FPS monitoring** — Tracks frametime, spikes, entity count, player velocity every tick
+- **FPS monitoring** — Frametime, spikes, entity count, player velocity tracked every tick
 - **Pressure scoring** — Combines metrics into a 0–100 pressure score with configurable sensitivity
 - **Stage transitions** — 5 stages (Normal → Minor → Moderate → Heavy → Emergency) with hysteresis and gradual recovery
-- **Entity distance scaling** — Reduces entity render radius under pressure via `options.entityDistanceScaling()`
-- **Cloud reduction** — Disables clouds at Moderate+ stage via `options.cloudStatus()`
-- **Weather dampening** — Reduces rain/thunder intensity proportionally to pressure
+- **Entity distance scaling** — Reduces entity render radius under pressure (EntityOptimizer)
+- **Cloud reduction** — Disables clouds at Moderate+ stage (CloudOptimizer; bypassed when Sodium is present)
+- **Weather dampening** — Reduces rain/thunder intensity proportionally to pressure (WeatherOptimizer)
 - **ModMenu GUI** — Full configuration screen with Cloth Config
 - **Debug overlay** — Shows FPS, pressure score, stage, active modules, estimated savings
-- **Compatibility scanner** — Detects Sodium, Iris, Lithium, etc.; disables stubs to avoid false conflicts
-- **PerformanceEngine** — Rolling window frametime statistics (1s/5s/15s/60s)
-- **AdaptiveManager** — Recovery cooldowns prevent oscillation (staged recovery timing)
+- **Compatibility scanner** — Detects Sodium, Iris, FerriteCore, etc.; disables overlapping modules to avoid conflicts
 
-## What's a Framework Only (Planned)
+## Internal-Parameter-Only Modules
 
-These module classes are registered and their `update()` is called every tick, but **none are wired into Minecraft's rendering pipeline** yet. They have no effect on the game. Pulse's actual optimizations happen directly in the tick loop, not through the module system.
+These modules register and track internal state every tick, but have **no game effect** in the current Minecraft version (26.2 Mojmap). They await mixin targets or Fabric events that don't exist yet in the rewritten rendering pipeline:
 
 - ParticleOptimizer
-- EntityOptimizer
-- CloudOptimizer
-- WeatherOptimizer (rain/thunder reduction works via direct API; particle-level control does not)
 - AnimationOptimizer
-- ShadowOptimizer
 - TransparencyOptimizer
 - UIOptimizer
 - ChunkUploadOptimizer
+- ShadowOptimizer (has Iris/OptiFine reflection path, untested)
 
-See [ROADMAP.md](ROADMAP.md) for future plans.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for details on the module system.
 
 ## Installation
 
