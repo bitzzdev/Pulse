@@ -191,23 +191,6 @@ public class ParticleOptimizer implements AdaptiveModule {
     }
 
     public boolean tryMergeParticles(Particle a, Particle b) {
-        if (currentStage == OptimizationStage.NORMAL) {
-            return false;
-        }
-        if (isCriticalParticle(a) || isCriticalParticle(b)) {
-            return false;
-        }
-        if (!a.getClass().equals(b.getClass())) {
-            return false;
-        }
-        double dx = a.getX() - b.getX();
-        double dy = a.getY() - b.getY();
-        double dz = a.getZ() - b.getZ();
-        double distSq = dx * dx + dy * dy + dz * dz;
-        if (distSq < mergeRadius * mergeRadius) {
-            mergedParticles.add(b);
-            return true;
-        }
         return false;
     }
 
@@ -246,25 +229,7 @@ public class ParticleOptimizer implements AdaptiveModule {
     }
 
     public boolean isParticleHidden(Particle particle) {
-        if (currentStage == OptimizationStage.NORMAL) {
-            return false;
-        }
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null) {
-            return false;
-        }
-        Camera camera = minecraft.gameRenderer.mainCamera;
-        Frustum frustum = minecraft.levelRenderer.frustum;
-        if (frustum == null) return false;
-        Vec3 camPos = camera.getPosition();
-        frustum.prepare(camPos.x, camPos.y, camPos.z);
-        AABB box = new AABB(particle.getX() - 0.1, particle.getY() - 0.1, particle.getZ() - 0.1,
-                particle.getX() + 0.1, particle.getY() + 0.1, particle.getZ() + 0.1);
-        if (!frustum.isVisible(box)) {
-            return true;
-        }
-        BlockPos pos = BlockPos.containing(particle.getX(), particle.getY(), particle.getZ());
-        return minecraft.level.isLoaded(pos) && minecraft.level.isSolidBlock(pos);
+        return false;
     }
 
     private boolean isCriticalParticle(Particle particle) {
@@ -295,21 +260,6 @@ public class ParticleOptimizer implements AdaptiveModule {
         if (minecraft.level == null) {
             return;
         }
-        ParticleEngine engine = minecraft.particleEngine;
-        if (engine == null) {
-            return;
-        }
-        int excess = getParticleCount() - maxParticles;
-        if (excess > 0) {
-            Pulse.LOGGER.debug("Clearing {} excess particles", excess);
-        }
-    }
-
-    public Set<Particle> getMergedParticles() {
-        return mergedParticles;
-    }
-
-    public void clearMergedParticles() {
-        mergedParticles.clear();
+        ParticleEngine engine = minecraft.particleEnginegedParticles.clear();
     }
 }

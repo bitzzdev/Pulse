@@ -5,7 +5,6 @@ import io.github.pulse.api.AdaptiveModule;
 import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
 
 public class CloudOptimizer implements AdaptiveModule {
 
@@ -168,10 +167,6 @@ public class CloudOptimizer implements AdaptiveModule {
     }
 
     private void applyCloudState(boolean enabled) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.levelRenderer != null) {
-            minecraft.levelRenderer.setCloudsEnabled(enabled);
-        }
     }
 
     private void restoreClouds() {

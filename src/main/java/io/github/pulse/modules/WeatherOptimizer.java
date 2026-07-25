@@ -6,7 +6,6 @@ import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.world.level.Level;
 
 public class WeatherOptimizer implements AdaptiveModule {
@@ -174,10 +173,6 @@ public class WeatherOptimizer implements AdaptiveModule {
     }
 
     private void restoreWeather() {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.levelRenderer != null) {
-            minecraft.levelRenderer.setRainTime(0);
-        }
     }
 
     public boolean shouldSkipWeatherParticle(double distance) {

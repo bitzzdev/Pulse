@@ -41,6 +41,15 @@ public class PressureEngine {
     private Map<String, Double> lastContributions;
     private boolean initialized;
 
+    private static PressureEngine instance;
+
+    public static PressureEngine getInstance() {
+        if (instance == null) {
+            instance = new PressureEngine();
+        }
+        return instance;
+    }
+
     public PressureEngine() {
         this(PerformanceEngine.getInstance());
     }

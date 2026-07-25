@@ -4,7 +4,6 @@ import io.github.pulse.Pulse;
 import io.github.pulse.api.AdaptiveModule;
 import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;

@@ -4,12 +4,8 @@ import io.github.pulse.Pulse;
 import io.github.pulse.api.AdaptiveModule;
 import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class AnimationOptimizer implements AdaptiveModule {
@@ -196,16 +192,14 @@ public class AnimationOptimizer implements AdaptiveModule {
             return false;
         }
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.levelRenderer == null) {
+        if (minecraft.levelRenderer == null || minecraft.player == null) {
             return true;
         }
-        Camera camera = minecraft.gameRenderer.mainCamera;
-        Frustum frustum = minecraft.levelRenderer.frustum;
-        if (frustum == null) {
-            return true;
-        }
-        AABB bounds = entity.getBoundingBox();
-        return frustum.isVisible(bounds);
+        Vec3 cameraPos = minecraft.player.getEyePosition();
+        Vec3 entityPos = entity.position();
+        double dist = entityPos.distanceTo(cameraPos);
+        double renderDist = 64.0;
+        return dist < renderDist;
     }
 
     public boolean shouldUpdateCuller(int frameCount) {

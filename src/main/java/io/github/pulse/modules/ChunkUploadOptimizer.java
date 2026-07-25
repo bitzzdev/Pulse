@@ -4,7 +4,6 @@ import io.github.pulse.Pulse;
 import io.github.pulse.api.AdaptiveModule;
 import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.chunk.SectionCompiler;
@@ -188,9 +187,8 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
 
     private double calculatePriority(SectionRenderDispatcher.RenderSection chunk) {
         Minecraft minecraft = Minecraft.getInstance();
-        Camera camera = minecraft.gameRenderer.mainCamera;
-        Vec3 cameraPos = camera.getPosition();
-        BlockPos chunkPos = chunk.getOrigin();
+        Vec3 cameraPos = minecraft.player != null ? minecraft.player.getEyePosition() : Vec3.ZERO;
+        BlockPos chunkPos = chunk.getRenderOrigin();
         Vec3 chunkCenter = new Vec3(
                 chunkPos.getX() + 8.0,
                 chunkPos.getY() + 8.0,
@@ -198,7 +196,7 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
         );
         double distance = chunkCenter.distanceTo(cameraPos);
         double distanceScore = Math.max(0.0, 1.0 - distance / 256.0) * priorityDistanceWeight;
-        Vec3 lookVec = camera.getLookVector();
+        Vec3 lookVec = minecraft.player != null ? minecraft.player.getLookAngle() : Vec3.ZERO;
         Vec3 toChunk = chunkCenter.subtract(cameraPos).normalize();
         double dotProduct = Math.max(0.0, lookVec.dot(toChunk));
         double directionScore = dotProduct * 0.4;

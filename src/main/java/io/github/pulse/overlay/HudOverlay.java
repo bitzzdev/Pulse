@@ -8,10 +8,12 @@ import io.github.pulse.config.ConfigManager;
 import io.github.pulse.config.PulseConfig.OverlayPosition;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +66,10 @@ public class HudOverlay {
     private boolean initialized = false;
 
     public void initialize() {
-        HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
-            render(drawContext);
-        });
+        HudElementRegistry.addLast(
+            Identifier.of("pulse", "overlay"),
+            (GuiGraphicsExtractor graphics, DeltaTracker tickCounter) -> render(graphics)
+        );
         this.lastActivityTime = System.currentTimeMillis();
         this.animationAlpha = 1.0f;
         this.initialized = true;
@@ -88,7 +91,7 @@ public class HudOverlay {
         this.animationAlpha = 1.0f;
     }
 
-    private void render(GuiGraphics context) {
+    private void render(GuiGraphicsExtractor context) {
         if (!initialized || !visible) return;
 
         long now = System.currentTimeMillis();
@@ -209,7 +212,7 @@ public class HudOverlay {
         return changed;
     }
 
-    private void renderOverlay(GuiGraphics context) {
+    private void renderOverlay(GuiGraphicsExtractor context) {
         Font font = Minecraft.getInstance().font;
         if (font == null) return;
 
@@ -259,7 +262,7 @@ public class HudOverlay {
         }
     }
 
-    private void renderSparkline(GuiGraphics context, int x, int y, int width) {
+    private void renderSparkline(GuiGraphicsExtractor context, int x, int y, int width) {
         int samples = Math.min(historyCount, SPARKLINE_SAMPLES);
         if (samples < 2) return;
 
@@ -293,8 +296,8 @@ public class HudOverlay {
 
     private int[] getOverlayPosition(int overlayWidth, int overlayHeight) {
         Minecraft client = Minecraft.getInstance();
-        int screenWidth = client.getWindow().getScaledWidth();
-        int screenHeight = client.getWindow().getScaledHeight();
+        int screenWidth = client.getWindow().getGuiScaledWidth();
+        int screenHeight = client.getWindow().getGuiScaledHeight();
         int margin = 4;
 
         OverlayPosition pos = ConfigManager.getOverlayPosition();
@@ -309,8 +312,7 @@ public class HudOverlay {
     private int getPressureColor(int pressure, float animAlpha) {
         int color;
         if (pressure < 30) color = 0x55FF55;
-        else if (pressure < 60) color = 0xFFFF55;
-        else if (pressure < 80) color = 0xFF8800;
+        else if (presspressure < 80) color = 0xFF8800;
         else color = 0xFF5555;
         int a = Math.round(animAlpha * 255);
         return (color & 0x00FFFFFF) | (a << 24);
