@@ -5,7 +5,6 @@ import io.github.pulse.api.AdaptiveModule;
 import io.github.pulse.api.OptimizationStage;
 import io.github.pulse.api.PulseAPI;
 import io.github.pulse.config.ConfigManager;
-import io.github.pulse.config.PulseConfig.OverlayPosition;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -25,9 +24,6 @@ public class HudOverlay {
     private static final Logger LOGGER = LoggerFactory.getLogger("pulse-overlay");
     private static final long AUTO_HIDE_DELAY_MS = 10000;
     private static final long FADE_DURATION_MS = 500;
-    private static final int SPARKLINE_WIDTH = 80;
-    private static final int SPARKLINE_HEIGHT = 20;
-    private static final int SPARKLINE_SAMPLES = 60;
     private static final int PADDING = 4;
     private static final int BG_COLOR = 0xCC0A0A0A;
     private static final int TEXT_COLOR = 0xFFE0E0E0;
@@ -38,9 +34,6 @@ public class HudOverlay {
     private long lastActivityTime = 0;
     private long lastFrameTime = 0;
     private double currentFrameTimeMs = 0;
-    private double[] frameTimeHistory = new double[SPARKLINE_SAMPLES];
-    private int historyIndex = 0;
-    private int historyCount = 0;
 
     private String cachedFpsText = "";
     private String cachedFrameTimeText = "";
@@ -59,7 +52,6 @@ public class HudOverlay {
     private double lastBudgetUsage = -1;
     private String lastOptimizations = "";
     private long lastSavings = -1;
-    private boolean lastShowGraph = false;
     private boolean lastDebugMode = false;
 
     private boolean initialized = false;
@@ -78,23 +70,16 @@ public class HudOverlay {
     public boolean isVisible() { return visible; }
     public boolean isDebugMode() { return debugMode; }
 
-    public void toggle() {
-        this.visible = !this.visible;
-        if (this.visible) {
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
+        if (debugMode) {
             this.lastActivityTime = System.currentTimeMillis();
             this.animationAlpha = 1.0f;
         }
     }
 
-    public void toggleDebug() {
-        this.debugMode = !this.debugMode;
-        ConfigManager.getInstance().getConfig().setDebugMode(this.debugMode);
-        this.lastActivityTime = System.currentTimeMillis();
-        this.animationAlpha = 1.0f;
-    }
-
     private void render(GuiGraphicsExtractor context) {
-        if (!initialized || !visible) return;
+        if (!initialized || !visible || !debugMode) return;
 
         long now = System.currentTimeMillis();
         updateFrameTime(now);
@@ -102,17 +87,13 @@ public class HudOverlay {
         boolean dataChanged = updateData();
         if (dataChanged) lastActivityTime = now;
 
-        if (!debugMode) {
-            long timeSinceActivity = now - lastActivityTime;
-            if (timeSinceActivity > AUTO_HIDE_DELAY_MS) {
-                long fadeElapsed = timeSinceActivity - AUTO_HIDE_DELAY_MS;
-                animationAlpha = Math.max(0.0f, 1.0f - (float) fadeElapsed / (float) FADE_DURATION_MS);
-                if (animationAlpha <= 0.0f) return;
-            } else {
-                animationAlpha = Math.min(1.0f, animationAlpha + 0.05f);
-            }
+        long timeSinceActivity = now - lastActivityTime;
+        if (timeSinceActivity > AUTO_HIDE_DELAY_MS) {
+            long fadeElapsed = timeSinceActivity - AUTO_HIDE_DELAY_MS;
+            animationAlpha = Math.max(0.0f, 1.0f - (float) fadeElapsed / (float) FADE_DURATION_MS);
+            if (animationAlpha <= 0.0f) return;
         } else {
-            animationAlpha = 1.0f;
+            animationAlpha = Math.min(1.0f, animationAlpha + 0.05f);
         }
 
         lastFrameTime = now;
@@ -123,9 +104,6 @@ public class HudOverlay {
             long delta = now - lastFrameTime;
             if (delta > 0) {
                 currentFrameTimeMs = Math.min(delta, 1000.0);
-                frameTimeHistory[historyIndex] = currentFrameTimeMs;
-                historyIndex = (historyIndex + 1) % SPARKLINE_SAMPLES;
-                if (historyCount < SPARKLINE_SAMPLES) historyCount++;
             }
         }
     }
@@ -199,39 +177,12 @@ public class HudOverlay {
             changed = true;
         }
 
-        boolean showGraph = ConfigManager.isShowFrameTimeGraph();
-        if (showGraph != lastShowGraph) {
-            lastShowGraph = showGraph;
-            changed = true;
-        }
-
         if (debugMode != lastDebugMode) {
             lastDebugMode = debugMode;
             changed = true;
         }
 
         return changed;
-    }
-
-    private void renderOverlay(GuiGraphicsExtractor context) {
-    }
-
-    private void renderSparkline(GuiGraphicsExtractor context, int x, int y, int width) {
-    }
-
-    private int[] getOverlayPosition(int overlayWidth, int overlayHeight) {
-        Minecraft client = Minecraft.getInstance();
-        int screenWidth = client.getWindow().getGuiScaledWidth();
-        int screenHeight = client.getWindow().getGuiScaledHeight();
-        int margin = 4;
-
-        OverlayPosition pos = ConfigManager.getOverlayPosition();
-        return switch (pos) {
-            case TOP_LEFT -> new int[]{margin, margin};
-            case TOP_RIGHT -> new int[]{screenWidth - overlayWidth - margin, margin};
-            case BOTTOM_LEFT -> new int[]{margin, screenHeight - overlayHeight - margin};
-            case BOTTOM_RIGHT -> new int[]{screenWidth - overlayWidth - margin, screenHeight - overlayHeight - margin};
-        };
     }
 
     private int getPressureColor(int pressure, float animAlpha) {

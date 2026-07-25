@@ -26,15 +26,7 @@ public class PulseConfig {
     private double recoverySpeed = 1.0;
     private OptimizationStage maxOptimizationStage = OptimizationStage.EMERGENCY;
     private Map<String, Boolean> moduleEnabled = new HashMap<>();
-    private boolean showOverlay = true;
-    private OverlayPosition overlayPosition = OverlayPosition.TOP_LEFT;
-    private boolean showFrameTimeGraph = false;
     private boolean debugMode = false;
-    private boolean experimentalFeatures = false;
-
-    public enum OverlayPosition {
-        TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
-    }
 
     public PulseConfig() {
         for (ModuleType type : ModuleType.values()) {
@@ -90,44 +82,12 @@ public class PulseConfig {
         this.moduleEnabled = moduleEnabled;
     }
 
-    public boolean isShowOverlay() {
-        return showOverlay;
-    }
-
-    public void setShowOverlay(boolean showOverlay) {
-        this.showOverlay = showOverlay;
-    }
-
-    public OverlayPosition getOverlayPosition() {
-        return overlayPosition;
-    }
-
-    public void setOverlayPosition(OverlayPosition overlayPosition) {
-        this.overlayPosition = overlayPosition;
-    }
-
-    public boolean isShowFrameTimeGraph() {
-        return showFrameTimeGraph;
-    }
-
-    public void setShowFrameTimeGraph(boolean showFrameTimeGraph) {
-        this.showFrameTimeGraph = showFrameTimeGraph;
-    }
-
     public boolean isDebugMode() {
         return debugMode;
     }
 
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;
-    }
-
-    public boolean isExperimentalFeatures() {
-        return experimentalFeatures;
-    }
-
-    public void setExperimentalFeatures(boolean experimentalFeatures) {
-        this.experimentalFeatures = experimentalFeatures;
     }
 
     public void load() {
@@ -146,11 +106,7 @@ public class PulseConfig {
                             }
                         }
                     }
-                    this.showOverlay = loaded.showOverlay;
-                    this.overlayPosition = loaded.overlayPosition;
-                    this.showFrameTimeGraph = loaded.showFrameTimeGraph;
                     this.debugMode = loaded.debugMode;
-                    this.experimentalFeatures = loaded.experimentalFeatures;
                     LOGGER.info("Configuration loaded from {}", CONFIG_PATH);
                 }
             } catch (IOException e) {
@@ -183,11 +139,7 @@ public class PulseConfig {
         for (ModuleType type : ModuleType.values()) {
             this.moduleEnabled.put(type.name(), true);
         }
-        this.showOverlay = true;
-        this.overlayPosition = OverlayPosition.TOP_LEFT;
-        this.showFrameTimeGraph = false;
         this.debugMode = false;
-        this.experimentalFeatures = false;
     }
 
     public void exportTo(Path path) {
@@ -215,11 +167,7 @@ public class PulseConfig {
                         this.moduleEnabled.clear();
                         this.moduleEnabled.putAll(loaded.moduleEnabled);
                     }
-                    this.showOverlay = loaded.showOverlay;
-                    this.overlayPosition = loaded.overlayPosition;
-                    this.showFrameTimeGraph = loaded.showFrameTimeGraph;
                     this.debugMode = loaded.debugMode;
-                    this.experimentalFeatures = loaded.experimentalFeatures;
                     LOGGER.info("Configuration imported from {}", path);
                 }
             } catch (IOException e) {

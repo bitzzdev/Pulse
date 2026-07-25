@@ -1,5 +1,3 @@
 {
-  "key.category.pulse.options": "Pulse Options",
-  "key.pulse.toggle_overlay": "Toggle Pulse Overlay",
-  "key.pulse.toggle_debug": "Toggle Pulse Debug"
+  "key.category.pulse.options": "Pulse Options"
 }

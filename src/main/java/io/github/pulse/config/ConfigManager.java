@@ -4,7 +4,6 @@ import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
-import io.github.pulse.config.PulseConfig.OverlayPosition;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
@@ -75,31 +74,27 @@ public class ConfigManager implements ModMenuApi {
             .setDefaultValue(60)
             .setTextGetter(value -> Component.literal(value + " FPS"))
             .setSaveConsumer(cfg::setTargetFps)
+            .setTooltip(Component.literal("Higher target FPS = more aggressive optimization to maintain that framerate. Lower = Pulse kicks in later."))
             .build());
         general.addEntry(entryBuilder
             .startLongSlider(Component.literal("Pressure Sensitivity"), (long)(cfg.getPressureSensitivity() * 100), 50, 200)
             .setDefaultValue(100)
             .setTextGetter(value -> Component.literal(String.format("%.2f", value / 100.0)))
             .setSaveConsumer(value -> cfg.setPressureSensitivity(value / 100.0))
+            .setTooltip(Component.literal("Higher value = more sensitive to FPS drops, escalates faster. Lower = needs more lag before Pulse reacts."))
             .build());
         general.addEntry(entryBuilder
             .startLongSlider(Component.literal("Recovery Speed"), (long)(cfg.getRecoverySpeed() * 100), 10, 200)
             .setDefaultValue(100)
             .setTextGetter(value -> Component.literal(String.format("%.2f", value / 100.0)))
             .setSaveConsumer(value -> cfg.setRecoverySpeed(value / 100.0))
+            .setTooltip(Component.literal("Higher value = Pulse backs off optimizations faster when FPS recovers. Lower = stays aggressive longer."))
             .build());
         general.addEntry(entryBuilder
             .startEnumSelector(Component.literal("Max Optimization Stage"), OptimizationStage.class, cfg.getMaxOptimizationStage())
             .setDefaultValue(OptimizationStage.EMERGENCY)
             .setSaveConsumer(cfg::setMaxOptimizationStage)
-            .build());
-
-        ConfigCategory performance = builder.getOrCreateCategory(Component.literal("Performance"));
-        performance.addEntry(entryBuilder
-            .startIntSlider(Component.literal("Target FPS"), cfg.getTargetFps(), 30, 240)
-            .setDefaultValue(60)
-            .setTextGetter(value -> Component.literal(value + " FPS"))
-            .setSaveConsumer(cfg::setTargetFps)
+            .setTooltip(Component.literal("Cap the maximum optimization level. Emergency = most FPS gain but may affect visuals. Normal = disabled."))
             .build());
 
         ConfigCategory modules = builder.getOrCreateCategory(Component.literal("Modules"));
@@ -109,36 +104,16 @@ public class ConfigManager implements ModMenuApi {
                 .startBooleanToggle(Component.literal(displayName), cfg.isModuleEnabled(type))
                 .setDefaultValue(true)
                 .setSaveConsumer(value -> cfg.setModuleEnabled(type, value))
+                .setTooltip(Component.literal("Enable or disable this optimization module. Disabled modules do not affect performance."))
                 .build());
         }
-
-        ConfigCategory display = builder.getOrCreateCategory(Component.literal("Display"));
-        display.addEntry(entryBuilder
-            .startBooleanToggle(Component.literal("Show Overlay"), cfg.isShowOverlay())
-            .setDefaultValue(true)
-            .setSaveConsumer(cfg::setShowOverlay)
-            .build());
-        display.addEntry(entryBuilder
-            .startEnumSelector(Component.literal("Overlay Position"), OverlayPosition.class, cfg.getOverlayPosition())
-            .setDefaultValue(OverlayPosition.TOP_LEFT)
-            .setSaveConsumer(cfg::setOverlayPosition)
-            .build());
-        display.addEntry(entryBuilder
-            .startBooleanToggle(Component.literal("Show Frame Time Graph"), cfg.isShowFrameTimeGraph())
-            .setDefaultValue(false)
-            .setSaveConsumer(cfg::setShowFrameTimeGraph)
-            .build());
 
         ConfigCategory advanced = builder.getOrCreateCategory(Component.literal("Advanced"));
         advanced.addEntry(entryBuilder
             .startBooleanToggle(Component.literal("Debug Mode"), cfg.isDebugMode())
             .setDefaultValue(false)
             .setSaveConsumer(cfg::setDebugMode)
-            .build());
-        advanced.addEntry(entryBuilder
-            .startBooleanToggle(Component.literal("Experimental Features"), cfg.isExperimentalFeatures())
-            .setDefaultValue(false)
-            .setSaveConsumer(cfg::setExperimentalFeatures)
+            .setTooltip(Component.literal("Show detailed Pulse overlay with FPS, pressure score, and active modules."))
             .build());
 
         builder.setSavingRunnable(() -> {
@@ -188,23 +163,7 @@ public class ConfigManager implements ModMenuApi {
         return getInstance().config.isModuleEnabled(type);
     }
 
-    public static boolean isShowOverlay() {
-        return getInstance().config.isShowOverlay();
-    }
-
-    public static OverlayPosition getOverlayPosition() {
-        return getInstance().config.getOverlayPosition();
-    }
-
-    public static boolean isShowFrameTimeGraph() {
-        return getInstance().config.isShowFrameTimeGraph();
-    }
-
     public static boolean isDebugMode() {
         return getInstance().config.isDebugMode();
-    }
-
-    public static boolean isExperimentalFeatures() {
-        return getInstance().config.isExperimentalFeatures();
     }
 }

@@ -1,18 +1,14 @@
 package io.github.pulse.client;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import io.github.pulse.Pulse;
 import io.github.pulse.api.OptimizationStage;
 import io.github.pulse.api.PulseAPI;
+import io.github.pulse.config.ConfigManager;
 import io.github.pulse.overlay.HudOverlay;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,9 +16,6 @@ import org.slf4j.LoggerFactory;
 public class PulseClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger("pulse-client");
 
-    private static HudOverlay hudOverlay;
-    private static KeyMapping toggleOverlayKey;
-    private static KeyMapping toggleDebugKey;
     private static OptimizationStage lastCaptionStage = null;
     private static int captionCooldown = 0;
 
@@ -30,33 +23,11 @@ public class PulseClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.info("Initializing Pulse client");
 
-        toggleOverlayKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-            "key.pulse.toggle_overlay",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_F6,
-            new KeyMapping.Category(Identifier.fromNamespaceAndPath("pulse", "options"))
-        ));
-
-        toggleDebugKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-            "key.pulse.toggle_debug",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_F7,
-            new KeyMapping.Category(Identifier.fromNamespaceAndPath("pulse", "options"))
-        ));
-
-        hudOverlay = new HudOverlay();
+        HudOverlay hudOverlay = new HudOverlay();
         hudOverlay.initialize();
+        hudOverlay.setDebugMode(ConfigManager.isDebugMode());
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (toggleOverlayKey.consumeClick()) {
-                hudOverlay.toggle();
-                LOGGER.info("Overlay visibility: {}", hudOverlay.isVisible());
-            }
-            while (toggleDebugKey.consumeClick()) {
-                hudOverlay.toggleDebug();
-                LOGGER.info("Debug mode: {}", hudOverlay.isDebugMode());
-            }
-
             Pulse.getPerformanceEngine().update();
             Pulse.getPressureEngine().update();
             Pulse.getAdaptiveManager().update();
@@ -85,9 +56,5 @@ public class PulseClient implements ClientModInitializer {
 
     public static void showCaption(String text) {
         LOGGER.info(text);
-    }
-
-    public static HudOverlay getHudOverlay() {
-        return hudOverlay;
     }
 }
