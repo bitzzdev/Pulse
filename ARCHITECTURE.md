@@ -2,7 +2,7 @@
 
 ## Overview
 
-Pulse is a layered performance monitor that sits between Minecraft's client tick loop and game settings. It observes framerate metrics, computes a pressure score, maps it to optimization stages, and applies cosmetic setting changes.
+Pulse is a layered performance monitor that sits between Minecraft's client tick loop and game settings. It observes framerate metrics, computes a pressure score, maps it to optimization stages, and applies cosmetic setting changes via named modules.
 
 ```
 Client Tick Loop
@@ -24,8 +24,9 @@ Client Tick Loop
 └──────────┬───────────┘
            ▼
 ┌──────────────────────┐
-│  PulseClient          │ ← applies real changes: entityDist, clouds, weather
-│  (END_CLIENT_TICK)    │
+│  ModuleManager        │ ← calls update(stage) on every module
+│  (each module owns    │
+│   its own apply())    │
 └──────────────────────┘
 ```
 
@@ -36,12 +37,13 @@ Client Tick Loop
 1. **PerformanceEngine.update()** — captures current FPS, frametime, spike detection, player velocity, entity count, GC events
 2. **PressureEngine.update()** — normalizes each metric (0–1), multiplies by weights (total 1.0), sums to a 0–100 pressure score with rate-limiting and hysteresis
 3. **AdaptiveManager.update()** — translates pressure score into `OptimizationStage`, manages recovery delays (wait N ticks before stepping down)
-4. **ModuleManager.update(stage)** — calls `update()` on every registered module (none actually change game state yet)
-5. **PulseClient.applyOptimizations()** — the only place real game changes happen:
-   - `options.entityDistanceScaling().set()` — reduces entity render distance
-   - `options.cloudStatus().set()` — disables clouds at Moderate+
-   - `level.setRainLevel()` / `level.setThunderLevel()` — damps weather
-   - Saves originals on first pressure; restores on return to Normal
+4. **ModuleManager.update(stage)** — calls `update()` on every registered module; each module that has a game-hook applies its own changes:
+   - EntityOptimizer → `options.entityDistanceScaling().set()`
+   - CloudOptimizer → `options.cloudStatus().set()`
+   - WeatherOptimizer → `level.setRainLevel()` / `level.setThunderLevel()`
+   - Others (Particle, Animation, Transparency, UI, ChunkUpload, Shadow) → internal parameters only (no public 26.2 API available)
+
+**PulseClient no longer applies any optimizations directly.** All game-state changes are owned by individual modules, each with its own save/restore lifecycle.
 
 ## Package Structure
 
@@ -62,15 +64,15 @@ io.github.pulse/
     AdaptiveManager.java         — stage mapping with hysteresis and recovery delay
   modules/
     ModuleManager.java           — registers/updates all modules
-    ParticleOptimizer.java       — stub (no game hook)
-    EntityOptimizer.java         — stub (no game hook)
-    CloudOptimizer.java          — stub (no game hook)
-    WeatherOptimizer.java        — stub (rain/thunder done in PulseClient directly)
-    AnimationOptimizer.java      — stub
-    ShadowOptimizer.java         — stub with Iris/OptiFine reflection (untested)
-    TransparencyOptimizer.java   — stub
-    UIOptimizer.java             — stub
-    ChunkUploadOptimizer.java    — stub
+    EntityOptimizer.java         — entityDistanceScaling saved/applied/restored
+    CloudOptimizer.java          — cloudStatus saved/applied/restored
+    WeatherOptimizer.java        — rain/thunder level saved/applied/restored
+    ParticleOptimizer.java       — internal parameters only
+    AnimationOptimizer.java      — internal parameters only
+    TransparencyOptimizer.java   — internal parameters only
+    UIOptimizer.java             — internal parameters only
+    ChunkUploadOptimizer.java    — internal parameters only
+    ShadowOptimizer.java         — Iris/OptiFine reflection (if shader mod present)
   budget/
     BudgetSystem.java            — tracks frametime vs target, estimates savings
   config/
@@ -81,17 +83,18 @@ io.github.pulse/
   compat/
     CompatibilityManager.java    — mod list scanner, marks stubs as disabled/reduced
   client/
-    PulseClient.java             — ClientModInitializer, applies real optimizations
+    PulseClient.java             — ClientModInitializer, pure orchestration
   util/
     Constants.java               — thresholds, window sizes, recovery times
 ```
 
-## Module System (Framework Only)
+## Module System
 
-`AdaptiveModule` is an interface with `initialize()`, `update(stage)`, `enable()`, `disable()`, `recover()`, `shutdown()`. All 9 modules implement it. Their `update()` is called every tick with the current stage. However, none of them hook into Minecraft's rendering systems because:
+`AdaptiveModule` is an interface with `initialize()`, `update(stage)`, `enable()`, `disable()`, `recover()`, `shutdown()`. All 9 modules implement it. Their `update()` is called every tick with the current stage.
 
-- **The current Mojmap version rewrote rendering** — old mixin targets (`LevelRenderer`, `EntityRenderDispatcher`, `ParticleEngine`) were renamed/restructured
-- **No Fabric events exist** for per-entity or per-particle culling in the current pipeline
-- The module framework is structural scaffolding awaiting correct Fabric event hooks
+Three modules wire directly into Minecraft's public API:
+- **EntityOptimizer** — reads/writes `options.entityDistanceScaling()`
+- **CloudOptimizer** — reads/writes `options.cloudStatus()`
+- **WeatherOptimizer** — reads/writes `level.setRainLevel()` / `level.setThunderLevel()`
 
-Real optimizations bypass the module system entirely and directly change `Options` and `ClientLevel` state in `PulseClient`.
+The rest use internal parameters only — they track state for mixin targets that haven't been written yet. The current Mojmap version rewrote rendering (old mixin targets were renamed/restructured) and no Fabric events exist for per-entity or per-particle culling.

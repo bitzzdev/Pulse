@@ -14,10 +14,19 @@ Configuration is managed through the ModMenu GUI (`config/pulse.json` is auto-ge
 
 ## Module Toggles
 
-Every module type has an `enabled` toggle (default: `true`). **Note:** Module toggles exist in the config GUI but have no effect yet — no module is wired to the game's rendering pipeline. Toggling them does nothing until module wiring is implemented.
+Every module type has an `enabled` toggle (default: `true`). Modules with a public API hook will apply game-state changes when enabled. Modules without one track internal parameters only (ready for future mixin targets).
 
-Available modules:
-- `PARTICLES`, `ENTITIES`, `CHUNKS`, `CLOUDS`, `SHADOWS`, `TRANSPARENCY`, `WEATHER`, `ANIMATIONS`, `UI`, `RENDER_DISTANCE`
+| Module | Game Hook | Effect |
+|---|---|---|
+| `ENTITIES` | `options.entityDistanceScaling()` | Reduces entity render distance under pressure |
+| `CLOUDS` | `options.cloudStatus()` | Disables clouds at Moderate+ |
+| `WEATHER` | `level.setRainLevel()/setThunderLevel()` | Damps rain/thunder intensity |
+| `PARTICLES` | None (26.2 Mojmap has no `ParticleStatus` enum) | Internal params only |
+| `ANIMATIONS` | None | Internal params only |
+| `TRANSPARENCY` | None | Internal params only |
+| `UI` | None | Internal params only |
+| `CHUNKS` | None | Internal params only |
+| `SHADOWS` | Iris/OptiFine reflection | Adjusts shadow distance/resolution if shaders active |
 
 ## JSON Format (`config/pulse.json`)
 

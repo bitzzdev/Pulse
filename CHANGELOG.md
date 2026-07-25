@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+- EntityOptimizer: now owns `options.entityDistanceScaling()` save/apply/restore
+- CloudOptimizer: now owns `options.cloudStatus()` save/apply/restore
+- WeatherOptimizer: now owns `level.setRainLevel()`/`setThunderLevel()` save/apply/restore
+- PulseClient: stripped of all direct optimization logic (pure orchestration)
+- ParticleOptimizer: `ParticleStatus` enum does not exist in 26.2 Mojmap; module kept as internal-parameter-only
+
 ## 0.1.0-alpha - Pre-release
 
 ### Added
@@ -7,11 +14,7 @@
 - `PerformanceEngine` — frametime/FPS tracking with rolling windows (1s/5s/15s/60s)
 - `PressureEngine` — weighted normalisation of metrics → 0–100 pressure score
 - `AdaptiveManager` — stage transitions (Normal→Emergency) with recovery delay
-- `PulseClient` — per-tick optimizations via Options/ClientLevel API:
-  - Entity distance scaling
-  - Cloud status (off at Moderate+)
-  - Rain/thunder intensity reduction
-- `ModuleManager` with 9 stub modules (framework only, no game hooks)
+- ModuleManager with 9 modules (3 wired to Options API, 6 internal-parameter-only)
 - `ConfigManager` — ModMenu integration (Cloth Config)
 - `PulseConfig` — JSON save/load
 - `HudOverlay` — debug overlay (FPS, pressure, stage, modules)
@@ -20,8 +23,7 @@
 - Project documentation: README, ARCHITECTURE, DEVELOPMENT, CONFIGURATION, COMPATIBILITY, PERFORMANCE, ROADMAP
 
 ### Known Issues
-- All 9 module classes are stubs — they register, update, but have no effect on rendering
+- Particle, Animation, Transparency, UI, ChunkUpload, and Shadow modules have no public API hooks — they track internal parameters only
 - ShadowOptimizer's Iris/OptiFine reflection is untested
-- Cloud optimization (`options.cloudStatus()`) compiles but CI build has not confirmed it works
 - No benchmark data for expected FPS gains
 - Recovery timing uses fixed ticks (not smoothed interpolation)
