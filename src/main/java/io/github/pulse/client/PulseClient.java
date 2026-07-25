@@ -1,14 +1,11 @@
 package io.github.pulse.client;
 
 import io.github.pulse.Pulse;
-import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
 import io.github.pulse.api.PulseAPI;
 import io.github.pulse.config.ConfigManager;
-import io.github.pulse.modules.EntityOptimizer;
 import io.github.pulse.overlay.HudOverlay;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRenderEvents;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -29,13 +26,6 @@ public class PulseClient implements ClientModInitializer {
         HudOverlay hudOverlay = new HudOverlay();
         hudOverlay.initialize();
         hudOverlay.setDebugMode(ConfigManager.isDebugMode());
-
-        EntityRenderEvents.BEFORE_ENTITY_RENDER.register((entity, camera, position, tickDelta) -> {
-            if (PulseAPI.getOptimizationStage() == OptimizationStage.NORMAL) return true;
-            EntityOptimizer optimizer = (EntityOptimizer) Pulse.getModuleManager().getModule(ModuleType.ENTITIES);
-            if (optimizer == null || !optimizer.isEnabled()) return true;
-            return optimizer.shouldRenderEntity(entity);
-        });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             Pulse.getPerformanceEngine().update();
