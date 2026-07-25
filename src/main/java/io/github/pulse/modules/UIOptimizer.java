@@ -85,7 +85,6 @@ public class UIOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void onStageChange(OptimizationStage oldStage, OptimizationStage newStage) {
         Pulse.LOGGER.debug("UIOptimizer stage changed from {} to {}", oldStage, newStage);
         if (newStage == OptimizationStage.EMERGENCY) {
@@ -93,7 +92,6 @@ public class UIOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         chatUpdateInterval = 1;

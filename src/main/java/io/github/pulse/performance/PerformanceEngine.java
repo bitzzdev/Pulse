@@ -135,14 +135,18 @@ public class PerformanceEngine {
         gpuUploadActivity = 0;
 
         if (client.particleEngine != null) {
-            particleCount = client.particleEngine.getParticleCount();
+            particleCount = client.particleEngine.countParticles();
         } else {
             particleCount = 0;
         }
 
         ClientLevel world = client.level;
         if (world != null) {
-            visibleEntityCount = world.getEntities().size();
+            int entityCount = 0;
+            for (net.minecraft.world.entity.Entity ignored : world.entitiesForRendering()) {
+                entityCount++;
+            }
+            visibleEntityCount = entityCount;
             transparentObjectCount = 0;
         } else {
             visibleEntityCount = 0;

@@ -101,7 +101,6 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void onStageChange(OptimizationStage oldStage, OptimizationStage newStage) {
         Pulse.LOGGER.debug("ChunkUploadOptimizer stage changed from {} to {}", oldStage, newStage);
         if (newStage.ordinal() > oldStage.ordinal()) {
@@ -109,7 +108,6 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         maxUploadsPerFrame = Integer.MAX_VALUE;
@@ -190,7 +188,7 @@ public class ChunkUploadOptimizer implements AdaptiveModule {
 
     private double calculatePriority(SectionRenderDispatcher.RenderSection chunk) {
         Minecraft minecraft = Minecraft.getInstance();
-        Camera camera = minecraft.gameRenderer.getMainCamera();
+        Camera camera = minecraft.gameRenderer.mainCamera;
         Vec3 cameraPos = camera.getPosition();
         BlockPos chunkPos = chunk.getOrigin();
         Vec3 chunkCenter = new Vec3(

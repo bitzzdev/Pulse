@@ -77,7 +77,6 @@ public class WeatherOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void onStageChange(OptimizationStage oldStage, OptimizationStage newStage) {
         Pulse.LOGGER.debug("WeatherOptimizer stage changed from {} to {}", oldStage, newStage);
         if (newStage == OptimizationStage.EMERGENCY) {
@@ -85,7 +84,6 @@ public class WeatherOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         particleCountFactor = 1.0f;

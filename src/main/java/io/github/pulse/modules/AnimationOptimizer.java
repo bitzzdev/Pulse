@@ -86,7 +86,6 @@ public class AnimationOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void onStageChange(OptimizationStage oldStage, OptimizationStage newStage) {
         Pulse.LOGGER.debug("AnimationOptimizer stage changed from {} to {}", oldStage, newStage);
         if (newStage == OptimizationStage.EMERGENCY) {
@@ -94,7 +93,6 @@ public class AnimationOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         animationDistanceThreshold = Double.MAX_VALUE;
@@ -201,8 +199,8 @@ public class AnimationOptimizer implements AdaptiveModule {
         if (minecraft.levelRenderer == null) {
             return true;
         }
-        Camera camera = minecraft.gameRenderer.getMainCamera();
-        Frustum frustum = minecraft.levelRenderer.getFrustum();
+        Camera camera = minecraft.gameRenderer.mainCamera;
+        Frustum frustum = minecraft.levelRenderer.frustum;
         if (frustum == null) {
             return true;
         }

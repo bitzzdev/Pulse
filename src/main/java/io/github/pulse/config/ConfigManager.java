@@ -72,16 +72,16 @@ public class ConfigManager implements ConfigScreenFactory<Screen> {
             .setSaveConsumer(cfg::setTargetFps)
             .build());
         general.addEntry(entryBuilder
-            .startDoubleSlider(Component.literal("Pressure Sensitivity"), cfg.getPressureSensitivity(), 0.5, 2.0)
-            .setDefaultValue(1.0)
-            .setTextGetter(value -> Component.literal(String.format("%.2f", value)))
-            .setSaveConsumer(cfg::setPressureSensitivity)
+            .startLongSlider(Component.literal("Pressure Sensitivity"), (long)(cfg.getPressureSensitivity() * 100), 50, 200)
+            .setDefaultValue(100)
+            .setTextGetter(value -> Component.literal(String.format("%.2f", value / 100.0)))
+            .setSaveConsumer(value -> cfg.setPressureSensitivity(value / 100.0))
             .build());
         general.addEntry(entryBuilder
-            .startDoubleSlider(Component.literal("Recovery Speed"), cfg.getRecoverySpeed(), 0.1, 2.0)
-            .setDefaultValue(1.0)
-            .setTextGetter(value -> Component.literal(String.format("%.2f", value)))
-            .setSaveConsumer(cfg::setRecoverySpeed)
+            .startLongSlider(Component.literal("Recovery Speed"), (long)(cfg.getRecoverySpeed() * 100), 10, 200)
+            .setDefaultValue(100)
+            .setTextGetter(value -> Component.literal(String.format("%.2f", value / 100.0)))
+            .setSaveConsumer(value -> cfg.setRecoverySpeed(value / 100.0))
             .build());
         general.addEntry(entryBuilder
             .startEnumSelector(Component.literal("Max Optimization Stage"), OptimizationStage.class, cfg.getMaxOptimizationStage())

@@ -89,7 +89,6 @@ public class TransparencyOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void onStageChange(OptimizationStage oldStage, OptimizationStage newStage) {
         Pulse.LOGGER.debug("TransparencyOptimizer stage changed from {} to {}", oldStage, newStage);
         if (newStage.ordinal() > OptimizationStage.MODERATE.ordinal()) {
@@ -97,7 +96,6 @@ public class TransparencyOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         sortInterval = 1;

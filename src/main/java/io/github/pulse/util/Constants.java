@@ -22,6 +22,7 @@ public final class Constants {
     public static final int MAX_ENTITIES = 200;
     public static final double MEMORY_CRITICAL_THRESHOLD = 0.85;
     public static final double MEMORY_HIGH_THRESHOLD = 0.70;
+    public static final long NANOS_PER_TICK = 50_000_000L;
     public static final long NANOS_PER_MILLI = 1_000_000L;
     public static final long NANOS_PER_SECOND = 1_000_000_000L;
 

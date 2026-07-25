@@ -28,14 +28,14 @@ public class PulseClient implements ClientModInitializer {
             "key.pulse.toggle_overlay",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_F6,
-            "category.pulse"
+            new KeyMapping.Category("category.pulse")
         ));
 
         toggleDebugKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key.pulse.toggle_debug",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_F7,
-            "category.pulse"
+            new KeyMapping.Category("category.pulse")
         ));
 
         hudOverlay = new HudOverlay();

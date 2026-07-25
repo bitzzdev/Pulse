@@ -8,10 +8,10 @@ import io.github.pulse.config.ConfigManager;
 import io.github.pulse.config.PulseConfig.OverlayPosition;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,10 +64,9 @@ public class HudOverlay {
     private boolean initialized = false;
 
     public void initialize() {
-        HudElementRegistry.addLast(
-            Identifier.of("pulse", "overlay"),
-            (graphics, deltaTracker) -> render(graphics)
-        );
+        HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
+            render(drawContext);
+        });
         this.lastActivityTime = System.currentTimeMillis();
         this.animationAlpha = 1.0f;
         this.initialized = true;
@@ -89,7 +88,7 @@ public class HudOverlay {
         this.animationAlpha = 1.0f;
     }
 
-    private void render(GuiGraphicsExtractor context) {
+    private void render(GuiGraphics context) {
         if (!initialized || !visible) return;
 
         long now = System.currentTimeMillis();
@@ -210,7 +209,7 @@ public class HudOverlay {
         return changed;
     }
 
-    private void renderOverlay(GuiGraphicsExtractor context) {
+    private void renderOverlay(GuiGraphics context) {
         Font font = Minecraft.getInstance().font;
         if (font == null) return;
 
@@ -260,7 +259,7 @@ public class HudOverlay {
         }
     }
 
-    private void renderSparkline(GuiGraphicsExtractor context, int x, int y, int width) {
+    private void renderSparkline(GuiGraphics context, int x, int y, int width) {
         int samples = Math.min(historyCount, SPARKLINE_SAMPLES);
         if (samples < 2) return;
 

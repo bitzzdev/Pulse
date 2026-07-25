@@ -102,7 +102,6 @@ public class CloudOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void onStageChange(OptimizationStage oldStage, OptimizationStage newStage) {
         Pulse.LOGGER.debug("CloudOptimizer stage changed from {} to {}", oldStage, newStage);
         if (newStage == OptimizationStage.EMERGENCY && oldStage != OptimizationStage.EMERGENCY) {
@@ -110,7 +109,6 @@ public class CloudOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         renderDistanceFactor = 1.0f;

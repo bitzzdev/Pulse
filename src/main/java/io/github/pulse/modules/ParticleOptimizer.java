@@ -109,7 +109,6 @@ public class ParticleOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void onStageChange(OptimizationStage oldStage, OptimizationStage newStage) {
         Pulse.LOGGER.debug("ParticleOptimizer stage changed from {} to {}", oldStage, newStage);
         if (newStage == OptimizationStage.EMERGENCY) {
@@ -117,7 +116,6 @@ public class ParticleOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         budgetFactor = 1.0f;
@@ -189,7 +187,7 @@ public class ParticleOptimizer implements AdaptiveModule {
                 return false;
             }
         }
-        return minecraft.level.random.nextFloat() < spawnProbability;
+        return minecraft.level.getRandom().nextFloat() < spawnProbability;
     }
 
     public boolean tryMergeParticles(Particle a, Particle b) {
@@ -202,9 +200,9 @@ public class ParticleOptimizer implements AdaptiveModule {
         if (!a.getClass().equals(b.getClass())) {
             return false;
         }
-        double dx = a.x - b.x;
-        double dy = a.y - b.y;
-        double dz = a.z - b.z;
+        double dx = a.getX() - b.getX();
+        double dy = a.getY() - b.getY();
+        double dz = a.getZ() - b.getZ();
         double distSq = dx * dx + dy * dy + dz * dz;
         if (distSq < mergeRadius * mergeRadius) {
             mergedParticles.add(b);
@@ -255,15 +253,17 @@ public class ParticleOptimizer implements AdaptiveModule {
         if (minecraft.level == null) {
             return false;
         }
-        Camera camera = minecraft.gameRenderer.getMainCamera();
-        Frustum frustum = new Frustum(minecraft.levelRenderer.getFrustum());
-        frustum.prepare(camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
-        AABB box = new AABB(particle.x - 0.1, particle.y - 0.1, particle.z - 0.1,
-                particle.x + 0.1, particle.y + 0.1, particle.z + 0.1);
+        Camera camera = minecraft.gameRenderer.mainCamera;
+        Frustum frustum = minecraft.levelRenderer.frustum;
+        if (frustum == null) return false;
+        Vec3 camPos = camera.getPosition();
+        frustum.prepare(camPos.x, camPos.y, camPos.z);
+        AABB box = new AABB(particle.getX() - 0.1, particle.getY() - 0.1, particle.getZ() - 0.1,
+                particle.getX() + 0.1, particle.getY() + 0.1, particle.getZ() + 0.1);
         if (!frustum.isVisible(box)) {
             return true;
         }
-        BlockPos pos = BlockPos.containing(particle.x, particle.y, particle.z);
+        BlockPos pos = BlockPos.containing(particle.getX(), particle.getY(), particle.getZ());
         return minecraft.level.isLoaded(pos) && minecraft.level.isSolidBlock(pos);
     }
 

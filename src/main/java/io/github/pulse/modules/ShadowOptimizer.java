@@ -45,17 +45,17 @@ public class ShadowOptimizer implements AdaptiveModule {
     }
 
     @Override
-    public float getEstimatedSavings() {
+    public long getEstimatedSavings() {
         if (!shaderModsDetected || !shaderPackActive) {
-            return 0.0f;
+            return 0L;
         }
         float saving = 0.0f;
-        saving += (1.0f - shadowDistanceFactor) * 0.5f;
-        saving += (1.0f - shadowResolutionFactor) * 0.3f;
+        saving += (1.0f - shadowDistanceFactor) * 50.0f;
+        saving += (1.0f - shadowResolutionFactor) * 30.0f;
         if (shadowBatching) {
-            saving += 0.1f;
+            saving += 10.0f;
         }
-        return Math.min(0.8f, saving);
+        return (long) Math.min(80L, (long) saving);
     }
 
     @Override
@@ -81,6 +81,29 @@ public class ShadowOptimizer implements AdaptiveModule {
     }
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
+    public double getCurrentImpact() {
+        return 0.0;
+    }
+
+    @Override
+    public ModulePriority getPriority() {
+        return ModulePriority.MEDIUM;
+    }
+
+    @Override
+    public void recover() {
+        reset();
+    }
+
+    @Override
+    public void shutdown() {
+        reset();
+    }
+
     public void onStageChange(OptimizationStage oldStage, OptimizationStage newStage) {
         Pulse.LOGGER.debug("ShadowOptimizer stage changed from {} to {}", oldStage, newStage);
         if (shaderModsDetected) {
@@ -89,7 +112,6 @@ public class ShadowOptimizer implements AdaptiveModule {
         }
     }
 
-    @Override
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         shadowDistanceFactor = 1.0f;
