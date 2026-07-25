@@ -11,11 +11,9 @@ base {
 }
 
 loom {
-    splitEnvironmentSourceSets()
     mods {
         "pulse" {
             sourceSet sourceSets.main
-            sourceSet sourceSets.client
         }
     }
 }
