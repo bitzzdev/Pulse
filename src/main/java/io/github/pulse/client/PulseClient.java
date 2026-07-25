@@ -56,6 +56,10 @@ public class PulseClient implements ClientModInitializer {
                 LOGGER.info("Debug mode: {}", hudOverlay.isDebugMode());
             }
 
+            Pulse.getPerformanceEngine().update();
+            Pulse.getPressureEngine().update();
+            Pulse.getAdaptiveManager().update();
+
             if (captionCooldown > 0) captionCooldown--;
             if (captionCooldown <= 0) {
                 OptimizationStage stage = PulseAPI.getOptimizationStage();
