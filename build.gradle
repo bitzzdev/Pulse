@@ -30,7 +30,7 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    modApi "maven.modrinth:cloth-config:${project.clothconfig_version}"
+    api "maven.modrinth:cloth-config:${project.clothconfig_version}"
 }
 
 java {
