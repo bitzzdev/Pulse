@@ -60,6 +60,7 @@ public class PulseClient implements ClientModInitializer {
             Pulse.getPerformanceEngine().update();
             Pulse.getPressureEngine().update();
             Pulse.getAdaptiveManager().update();
+            Pulse.getModuleManager().update(PulseAPI.getOptimizationStage());
 
             if (captionCooldown > 0) captionCooldown--;
             if (captionCooldown <= 0) {

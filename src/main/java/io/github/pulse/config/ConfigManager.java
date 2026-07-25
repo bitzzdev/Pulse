@@ -1,6 +1,7 @@
 package io.github.pulse.config;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
+import com.terraformersmc.modmenu.api.ModMenuApi;
 import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
 import io.github.pulse.config.PulseConfig.OverlayPosition;
@@ -14,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 
-public class ConfigManager implements ConfigScreenFactory<Screen> {
+public class ConfigManager implements ModMenuApi {
     private static final Logger LOGGER = LoggerFactory.getLogger("pulse-config");
     private static ConfigManager instance;
 
@@ -40,6 +41,11 @@ public class ConfigManager implements ConfigScreenFactory<Screen> {
     public void shutdown() {
         config.save();
         LOGGER.info("ConfigManager shut down");
+    }
+
+    @Override
+    public ConfigScreenFactory<?> getModConfigScreenFactory() {
+        return this::buildScreen;
     }
 
     @Override
