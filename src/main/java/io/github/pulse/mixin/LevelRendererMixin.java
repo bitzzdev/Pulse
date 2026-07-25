@@ -7,8 +7,6 @@ import io.github.pulse.api.PulseAPI;
 import io.github.pulse.modules.CloudOptimizer;
 import io.github.pulse.modules.WeatherOptimizer;
 import net.minecraft.client.renderer.LevelRenderer;
-import com.mojang.blaze3d.vertex.PoseStack;
-import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class LevelRendererMixin {
 
     @Inject(method = "renderClouds", at = @At("HEAD"), cancellable = true)
-    private void onRenderClouds(PoseStack poseStack, Matrix4f projectionMatrix, float partialTick, double camX, double camY, double camZ, CallbackInfo ci) {
+    private void onRenderClouds(CallbackInfo ci) {
         OptimizationStage stage = PulseAPI.getOptimizationStage();
         if (stage == OptimizationStage.NORMAL) return;
 
@@ -31,7 +29,7 @@ public class LevelRendererMixin {
     }
 
     @Inject(method = "renderSnowAndRain", at = @At("HEAD"), cancellable = true)
-    private void onRenderWeather(PoseStack poseStack, float partialTick, double camX, double camY, double camZ, CallbackInfo ci) {
+    private void onRenderWeather(CallbackInfo ci) {
         OptimizationStage stage = PulseAPI.getOptimizationStage();
         if (stage == OptimizationStage.NORMAL) return;
 

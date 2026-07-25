@@ -15,6 +15,7 @@ import java.util.Set;
 public class EntityOptimizer implements AdaptiveModule {
 
     private static final double[] ANIMATION_LOD_DISTANCES = {Double.MAX_VALUE, 48.0, 32.0, 24.0, 16.0};
+    private static final double[] RENDER_DISTANCES = {Double.MAX_VALUE, 64.0, 48.0, 32.0, 16.0};
     private static final float[] ANIMATION_FREQUENCY_FACTORS = {1.0f, 0.9f, 0.7f, 0.5f, 0.25f};
     private static final float[] INTERPOLATION_RATES = {1.0f, 0.9f, 0.75f, 0.5f, 0.3f};
     private static final double PRIORITY_DISTANCE = 16.0;
@@ -22,6 +23,7 @@ public class EntityOptimizer implements AdaptiveModule {
     private boolean enabled = true;
     private OptimizationStage currentStage = OptimizationStage.NORMAL;
     private double animationLODDistance = Double.MAX_VALUE;
+    private double renderDistance = Double.MAX_VALUE;
     private float animationFrequencyFactor = 1.0f;
     private boolean skipCosmetics;
     private float interpolationRate = 1.0f;
@@ -79,6 +81,7 @@ public class EntityOptimizer implements AdaptiveModule {
         currentStage = stage;
         int ordinal = stage.ordinal();
         animationLODDistance = ANIMATION_LOD_DISTANCES[Math.min(ordinal, ANIMATION_LOD_DISTANCES.length - 1)];
+        renderDistance = RENDER_DISTANCES[Math.min(ordinal, RENDER_DISTANCES.length - 1)];
         animationFrequencyFactor = ANIMATION_FREQUENCY_FACTORS[Math.min(ordinal, ANIMATION_FREQUENCY_FACTORS.length - 1)];
         interpolationRate = INTERPOLATION_RATES[Math.min(ordinal, INTERPOLATION_RATES.length - 1)];
         skipCosmetics = ordinal >= OptimizationStage.MODERATE.ordinal();
@@ -99,6 +102,7 @@ public class EntityOptimizer implements AdaptiveModule {
     public void reset() {
         currentStage = OptimizationStage.NORMAL;
         animationLODDistance = Double.MAX_VALUE;
+        renderDistance = Double.MAX_VALUE;
         animationFrequencyFactor = 1.0f;
         skipCosmetics = false;
         interpolationRate = 1.0f;
@@ -127,10 +131,14 @@ public class EntityOptimizer implements AdaptiveModule {
     }
 
     public boolean shouldRenderEntity(Entity entity) {
-        if (currentStage == OptimizationStage.NORMAL) {
+        if (currentStage == OptimizationStage.NORMAL || entity == null) {
             return true;
         }
-        return true;
+        if (highPriorityEntities.contains(entity.getId())) {
+            return true;
+        }
+        double distance = getEntityDistance(entity);
+        return distance <= renderDistance;
     }
 
     public boolean shouldRenderCosmetics(Entity entity) {
