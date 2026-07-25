@@ -5,6 +5,7 @@
   "name": "Pulse",
   "description": "Adaptive Performance Manager for Minecraft",
   "environment": "client",
+  "icon": "icon.png",
   "mixins": [
     "pulse.mixins.json"
   ],
