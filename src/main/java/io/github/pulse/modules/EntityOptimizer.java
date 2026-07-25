@@ -235,9 +235,6 @@ public class EntityOptimizer implements AdaptiveModule {
 
     private double getEntityDistance(Entity entity) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.cameraEntity != null) {
-            return minecraft.cameraEntity.distanceTo(entity);
-        }
         if (minecraft.player != null) {
             return minecraft.player.distanceTo(entity);
         }

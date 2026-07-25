@@ -8,6 +8,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,14 +29,14 @@ public class PulseClient implements ClientModInitializer {
             "key.pulse.toggle_overlay",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_F6,
-            new KeyMapping.Category("category.pulse")
+            new KeyMapping.Category(Identifier.fromNamespaceAndPath("pulse", "category"))
         ));
 
         toggleDebugKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key.pulse.toggle_debug",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_F7,
-            new KeyMapping.Category("category.pulse")
+            new KeyMapping.Category(Identifier.fromNamespaceAndPath("pulse", "category"))
         ));
 
         hudOverlay = new HudOverlay();

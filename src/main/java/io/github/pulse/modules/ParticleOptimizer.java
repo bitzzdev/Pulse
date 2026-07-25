@@ -243,12 +243,7 @@ public class ParticleOptimizer implements AdaptiveModule {
     }
 
     private int getParticleCount() {
-        Minecraft minecraft = Minecraft.getInstance();
-        ParticleEngine engine = minecraft.particleEngine;
-        if (engine == null) {
-            return 0;
-        }
-        return engine.countParticles();
+        return 0;
     }
 
     private int getBaseMaxParticles() {
@@ -260,6 +255,6 @@ public class ParticleOptimizer implements AdaptiveModule {
         if (minecraft.level == null) {
             return;
         }
-        ParticleEngine engine = minecraft.particleEnginegedParticles.clear();
+        mergedParticles.clear();
     }
 }

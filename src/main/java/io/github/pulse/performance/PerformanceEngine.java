@@ -135,7 +135,7 @@ public class PerformanceEngine {
         gpuUploadActivity = 0;
 
         if (client.particleEngine != null) {
-            particleCount = client.particleEngine.countParticles();
+            particleCount = 0;
         } else {
             particleCount = 0;
         }

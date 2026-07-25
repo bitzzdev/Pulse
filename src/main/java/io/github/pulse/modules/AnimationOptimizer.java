@@ -231,9 +231,6 @@ public class AnimationOptimizer implements AdaptiveModule {
             return Double.MAX_VALUE;
         }
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.cameraEntity != null) {
-            return minecraft.cameraEntity.distanceTo(entity);
-        }
         if (minecraft.player != null) {
             return minecraft.player.distanceTo(entity);
         }

@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -67,7 +66,7 @@ public class HudOverlay {
 
     public void initialize() {
         HudElementRegistry.addLast(
-            Identifier.of("pulse", "overlay"),
+            Identifier.fromNamespaceAndPath("pulse", "overlay"),
             (GuiGraphicsExtractor graphics, DeltaTracker tickCounter) -> render(graphics)
         );
         this.lastActivityTime = System.currentTimeMillis();
@@ -113,7 +112,6 @@ public class HudOverlay {
             animationAlpha = 1.0f;
         }
 
-        renderOverlay(context);
         lastFrameTime = now;
     }
 
@@ -213,85 +211,9 @@ public class HudOverlay {
     }
 
     private void renderOverlay(GuiGraphicsExtractor context) {
-        Font font = Minecraft.getInstance().font;
-        if (font == null) return;
-
-        List<String> lines = new ArrayList<>();
-        lines.add(cachedFpsText + " | " + cachedFrameTimeText);
-        lines.add(cachedTargetFpsText + " | " + cachedPressureText);
-        lines.add(cachedStageText + " | " + cachedBudgetText);
-        lines.add("Active: " + cachedOptimizationsText);
-        if (!cachedSavingsText.isEmpty()) lines.add(cachedSavingsText);
-
-        if (!debugMode && lastPressure >= 0) {
-            lines.set(1, cachedTargetFpsText + " | P: " + lastPressure);
-        }
-
-        int maxLineWidth = 0;
-        for (String line : lines) {
-            int w = font.width(line);
-            if (w > maxLineWidth) maxLineWidth = w;
-        }
-
-        int graphHeight = lastShowGraph && historyCount > 1 ? SPARKLINE_HEIGHT + PADDING : 0;
-        int overlayWidth = Math.max(maxLineWidth + PADDING * 2, SPARKLINE_WIDTH + PADDING * 2);
-        int overlayHeight = lines.size() * (font.lineHeight + 1) + PADDING * 2 + graphHeight;
-
-        int[] pos = getOverlayPosition(overlayWidth, overlayHeight);
-        int x = pos[0];
-        int y = pos[1];
-
-        int alphaByte = Math.round(animationAlpha * 255);
-        int bgWithAlpha = (BG_COLOR & 0x00FFFFFF) | (alphaByte << 24);
-        int textWithAlpha = (TEXT_COLOR & 0x00FFFFFF) | (alphaByte << 24);
-
-        context.fill(x, y, x + overlayWidth, y + overlayHeight, bgWithAlpha);
-
-        int textY = y + PADDING;
-        for (String line : lines) {
-            int color = textWithAlpha;
-            if (line.startsWith("Pressure:") || line.contains("P: ")) {
-                color = getPressureColor(lastPressure, animationAlpha);
-            }
-            context.drawText(font, line, x + PADDING, textY, color, false);
-            textY += font.lineHeight + 1;
-        }
-
-        if (lastShowGraph && historyCount > 1) {
-            renderSparkline(context, x + PADDING, textY + PADDING, overlayWidth - PADDING * 2);
-        }
     }
 
     private void renderSparkline(GuiGraphicsExtractor context, int x, int y, int width) {
-        int samples = Math.min(historyCount, SPARKLINE_SAMPLES);
-        if (samples < 2) return;
-
-        double maxFrameTime = 0;
-        for (int i = 0; i < samples; i++) {
-            int idx = (historyIndex - samples + i + SPARKLINE_SAMPLES) % SPARKLINE_SAMPLES;
-            if (frameTimeHistory[idx] > maxFrameTime) maxFrameTime = frameTimeHistory[idx];
-        }
-        if (maxFrameTime <= 0) maxFrameTime = 16.67;
-
-        int barWidth = Math.max(2, width / samples);
-        int sparkAlpha = Math.round(animationAlpha * 180);
-        int sparkColor = (0x88FF88 & 0x00FFFFFF) | (sparkAlpha << 24);
-
-        for (int i = 0; i < samples; i++) {
-            int idx = (historyIndex - samples + i + SPARKLINE_SAMPLES) % SPARKLINE_SAMPLES;
-            double value = frameTimeHistory[idx];
-            int barHeight = (int) ((value / maxFrameTime) * SPARKLINE_HEIGHT);
-            if (barHeight < 1) barHeight = 1;
-            int bx = x + i * (barWidth + 1);
-            int by = y + SPARKLINE_HEIGHT - barHeight;
-            context.fill(bx, by, bx + barWidth, y + SPARKLINE_HEIGHT, sparkColor);
-        }
-
-        int labelAlpha = Math.round(animationAlpha * 255);
-        int labelColor = (0xAAAAAA & 0x00FFFFFF) | (labelAlpha << 24);
-        Font sparklineFont = Minecraft.getInstance().font;
-        String maxLabel = String.format("%.0fms", maxFrameTime);
-        context.drawText(sparklineFont, maxLabel, x + width - sparklineFont.width(maxLabel), y - sparklineFont.lineHeight - 1, labelColor, false);
     }
 
     private int[] getOverlayPosition(int overlayWidth, int overlayHeight) {
@@ -312,7 +234,7 @@ public class HudOverlay {
     private int getPressureColor(int pressure, float animAlpha) {
         int color;
         if (pressure < 30) color = 0x55FF55;
-        else if (presspressure < 80) color = 0xFF8800;
+        else if (pressure < 80) color = 0xFF8800;
         else color = 0xFF5555;
         int a = Math.round(animAlpha * 255);
         return (color & 0x00FFFFFF) | (a << 24);
