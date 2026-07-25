@@ -9,7 +9,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -25,7 +24,6 @@ public class PulseClient implements ClientModInitializer {
 
     private static int savedRenderDistance = -1;
     private static double savedEntityDistance = -1;
-    private static boolean savedGraphicsFast = false;
     private static double savedRainLevel = -1;
     private static double savedThunderLevel = -1;
     private static boolean settingsSaved = false;
@@ -79,9 +77,7 @@ public class PulseClient implements ClientModInitializer {
 
         if (!settingsSaved) {
             savedRenderDistance = options.renderDistance().get();
-            savedGraphicsFast = options.graphicsMode().get() == GraphicsStatus.FAST;
-            var entDist = options.entityDistanceScaling().get();
-            savedEntityDistance = entDist;
+            savedEntityDistance = options.entityDistanceScaling().get();
             if (level != null) {
                 savedRainLevel = level.getRainLevel(1.0f);
                 savedThunderLevel = level.getThunderLevel(1.0f);
@@ -94,10 +90,6 @@ public class PulseClient implements ClientModInitializer {
         int renderDist = Math.max(2, savedRenderDistance - ordinal * 2);
         if (options.renderDistance().get() != renderDist) {
             options.renderDistance().set(renderDist);
-        }
-
-        if (ordinal >= OptimizationStage.HEAVY.ordinal()) {
-            options.graphicsMode().set(GraphicsStatus.FAST);
         }
 
         double entDistScale = Math.max(0.25, 1.0 - ordinal * 0.15);
@@ -121,11 +113,6 @@ public class PulseClient implements ClientModInitializer {
             if (savedRenderDistance >= 0) {
                 options.renderDistance().set(savedRenderDistance);
             }
-            if (savedGraphicsFast) {
-                options.graphicsMode().set(GraphicsStatus.FAST);
-            } else {
-                options.graphicsMode().set(GraphicsStatus.FANCY);
-            }
             if (savedEntityDistance > 0) {
                 options.entityDistanceScaling().set(savedEntityDistance);
             }
@@ -135,7 +122,6 @@ public class PulseClient implements ClientModInitializer {
             }
             savedRenderDistance = -1;
             savedEntityDistance = -1;
-            savedGraphicsFast = false;
             savedRainLevel = -1;
             savedThunderLevel = -1;
             settingsSaved = false;
