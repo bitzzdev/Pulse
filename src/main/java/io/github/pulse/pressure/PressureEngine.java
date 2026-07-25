@@ -26,13 +26,13 @@ public class PressureEngine {
     private static final double WEIGHT_SPIKES = 0.25;
     private static final double WEIGHT_FPS_BELOW = 0.20;
     private static final double WEIGHT_VARIANCE = 0.15;
-    private static final double WEIGHT_CHUNK = 0.10;
-    private static final double WEIGHT_GPU = 0.10;
-    private static final double WEIGHT_VELOCITY = 0.05;
+    private static final double WEIGHT_CHUNK = 0.08;
+    private static final double WEIGHT_GPU = 0.07;
+    private static final double WEIGHT_VELOCITY = 0.03;
     private static final double WEIGHT_PARTICLES = 0.05;
     private static final double WEIGHT_TRANSPARENCY = 0.05;
-    private static final double WEIGHT_WEATHER = 0.03;
-    private static final double WEIGHT_ENTITIES = 0.02;
+    private static final double WEIGHT_WEATHER = 0.02;
+    private static final double WEIGHT_ENTITIES = 0.10;
 
     private final PerformanceEngine performanceEngine;
     private double lastPressureScore;

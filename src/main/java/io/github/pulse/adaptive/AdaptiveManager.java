@@ -12,10 +12,10 @@ import org.slf4j.LoggerFactory;
 public class AdaptiveManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdaptiveManager.class);
 
-    private static final int THRESHOLD_NORMAL_MAX = 15;
-    private static final int THRESHOLD_MINOR_MAX = 35;
-    private static final int THRESHOLD_MODERATE_MAX = 55;
-    private static final int THRESHOLD_HEAVY_MAX = 75;
+    private static final int THRESHOLD_NORMAL_MAX = 5;
+    private static final int THRESHOLD_MINOR_MAX = 15;
+    private static final int THRESHOLD_MODERATE_MAX = 30;
+    private static final int THRESHOLD_HEAVY_MAX = 50;
     private static final int HYSTERESIS = 5;
 
     private final PressureEngine pressureEngine;
