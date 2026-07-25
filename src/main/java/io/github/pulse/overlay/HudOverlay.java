@@ -75,6 +75,9 @@ public class HudOverlay {
         LOGGER.info("HudOverlay initialized");
     }
 
+    public boolean isVisible() { return visible; }
+    public boolean isDebugMode() { return debugMode; }
+
     public void toggle() {
         this.visible = !this.visible;
         if (this.visible) {

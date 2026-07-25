@@ -10,8 +10,6 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -51,9 +49,11 @@ public class PulseClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (toggleOverlayKey.consumeClick()) {
                 hudOverlay.toggle();
+                LOGGER.info("Overlay visibility: {}", hudOverlay.isVisible());
             }
             while (toggleDebugKey.consumeClick()) {
                 hudOverlay.toggleDebug();
+                LOGGER.info("Debug mode: {}", hudOverlay.isDebugMode());
             }
 
             if (captionCooldown > 0) captionCooldown--;
@@ -78,10 +78,7 @@ public class PulseClient implements ClientModInitializer {
     }
 
     public static void showCaption(String text) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player != null) {
-            minecraft.player.sendSystemMessage(Component.literal(text));
-        }
+        LOGGER.info(text);
     }
 
     public static HudOverlay getHudOverlay() {
