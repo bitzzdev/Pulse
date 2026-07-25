@@ -6,6 +6,10 @@
 - WeatherOptimizer: now owns `level.setRainLevel()`/`setThunderLevel()` save/apply/restore
 - PulseClient: stripped of all direct optimization logic (pure orchestration)
 - ParticleOptimizer: `ParticleStatus` enum does not exist in 26.2 Mojmap; module kept as internal-parameter-only
+- Mixin infrastructure: 5 mixins added (`ParticleEngineMixin`, `EntityRenderDispatcherMixin`, `SectionRenderDispatcherMixin`, `GuiMixin`, `ChatComponentMixin`), all with `require = 0` for version compatibility
+- Mixin config: `pulse.mixins.json` updated with `"defaultRequire": 0` and 5 client mixin entries
+- ARCHITECTURE.md: mixin table added, six-module hook strategy documented
+- Build via GitHub Actions only (no local `gradlew build`)
 
 ## 0.1.0-alpha - Pre-release
 

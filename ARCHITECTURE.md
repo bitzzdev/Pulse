@@ -92,9 +92,29 @@ io.github.pulse/
 
 `AdaptiveModule` is an interface with `initialize()`, `update(stage)`, `enable()`, `disable()`, `recover()`, `shutdown()`. All 9 modules implement it. Their `update()` is called every tick with the current stage.
 
+### Mixin infrastructure (require = 0)
+
+All untargeted modules now have companion mixin classes in `io.github.pulse.mixin/`. Each `@Inject` uses `require = 0` so the hook silently no-ops if the target method was renamed/restructured in a future Mojmap version. The modules remain functional at the internal-parameter level even when no mixin matches.
+
+| Mixin | Target | Module |
+|-------|--------|--------|
+| `ParticleEngineMixin` | `ParticleEngine#add(Particle)` | ParticleOptimizer |
+| `EntityRenderDispatcherMixin` | `EntityRenderDispatcher#shouldRender(Entity, ...)` | AnimationOptimizer |
+| `SectionRenderDispatcherMixin` | `SectionRenderDispatcher#scheduleCompile` | ChunkUploadOptimizer |
+| `GuiMixin` | `Gui#renderChat`, `Gui#renderTooltip`, `Gui#renderEffects` | UIOptimizer |
+| `ChatComponentMixin` | `ChatComponent#tick` | UIOptimizer |
+
 Three modules wire directly into Minecraft's public API:
 - **EntityOptimizer** — reads/writes `options.entityDistanceScaling()`
 - **CloudOptimizer** — reads/writes `options.cloudStatus()`
 - **WeatherOptimizer** — reads/writes `level.setRainLevel()` / `level.setThunderLevel()`
 
-The rest use internal parameters only — they track state for mixin targets that haven't been written yet. The current Mojmap version rewrote rendering (old mixin targets were renamed/restructured) and no Fabric events exist for per-entity or per-particle culling.
+Six modules use mixin hooks (`require = 0`) backed by internal parameter fallbacks:
+- **ParticleOptimizer** — mixin into `ParticleEngine#add` + internal spawn probability/distance
+- **AnimationOptimizer** — mixin into `EntityRenderDispatcher#shouldRender` + internal distance thresholds
+- **ChunkUploadOptimizer** — mixin into `SectionRenderDispatcher#scheduleCompile` + internal queue logic
+- **UIOptimizer** — mixins into `Gui` and `ChatComponent` + internal update intervals
+- **TransparencyOptimizer** — internal parameters only (no viable hooks for sort-interval control)
+- **ShadowOptimizer** — Iris/OptiFine reflection with internal distance/resolution factors
+
+The current Mojmap version rewrote rendering (old mixin targets were renamed/restructured) and no Fabric events exist for per-entity or per-particle culling. Mixins target the most stable Mojmap method names and silently degrade to internal-parameter-only mode when a target is missing.
