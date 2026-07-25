@@ -9,6 +9,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.client.Minecraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ public class PulseClient implements ClientModInitializer {
 
     private static OptimizationStage lastCaptionStage = null;
     private static int captionCooldown = 0;
+    private static int savedRenderDistance = -1;
 
     @Override
     public void onInitializeClient() {
@@ -32,6 +34,8 @@ public class PulseClient implements ClientModInitializer {
             Pulse.getPressureEngine().update();
             Pulse.getAdaptiveManager().update();
             Pulse.getModuleManager().update(PulseAPI.getOptimizationStage());
+
+            applyOptimizations(client);
 
             if (captionCooldown > 0) captionCooldown--;
             if (captionCooldown <= 0) {
@@ -52,6 +56,35 @@ public class PulseClient implements ClientModInitializer {
         });
 
         LOGGER.info("Pulse client initialized");
+    }
+
+    private static void applyOptimizations(Minecraft client) {
+        OptimizationStage stage = PulseAPI.getOptimizationStage();
+        var options = client.options;
+
+        if (stage == OptimizationStage.NORMAL) {
+            if (savedRenderDistance >= 0) {
+                options.renderDistance().set(savedRenderDistance);
+                savedRenderDistance = -1;
+            }
+            return;
+        }
+
+        if (savedRenderDistance < 0) {
+            savedRenderDistance = options.renderDistance().get();
+        }
+
+        int renderDist = switch (stage) {
+            case MINOR -> Math.max(2, savedRenderDistance - 2);
+            case MODERATE -> Math.max(2, savedRenderDistance - 4);
+            case HEAVY -> Math.max(2, savedRenderDistance - 6);
+            case EMERGENCY -> Math.max(2, savedRenderDistance - 8);
+            default -> savedRenderDistance;
+        };
+
+        if (options.renderDistance().get() != renderDist) {
+            options.renderDistance().set(renderDist);
+        }
     }
 
     public static void showCaption(String text) {
