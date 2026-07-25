@@ -8,30 +8,23 @@ import io.github.pulse.modules.ParticleOptimizer;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleEngine;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.List;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ParticleEngine.class)
 public class ParticleEngineMixin {
-    @Shadow
-    private List<Particle> particles;
 
-    @Inject(method = "tick", at = @At("TAIL"))
-    private void onTick(CallbackInfo ci) {
+    @Inject(method = "addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)Lnet/minecraft/client/particle/Particle;", at = @At("HEAD"), cancellable = true)
+    private void onAddParticle(CallbackInfoReturnable<Particle> cir) {
         OptimizationStage stage = PulseAPI.getOptimizationStage();
         if (stage == OptimizationStage.NORMAL) return;
 
         ParticleOptimizer optimizer = (ParticleOptimizer) Pulse.getModuleManager().getModule(ModuleType.PARTICLES);
         if (optimizer == null || !optimizer.isEnabled()) return;
 
-        int maxParticles = optimizer.getMaxParticles();
-        if (maxParticles <= 0 || particles.size() <= maxParticles) return;
-
-        int toRemove = particles.size() - maxParticles;
-        particles.subList(particles.size() - toRemove, particles.size()).clear();
+        if (!optimizer.shouldSpawnParticle("")) {
+            cir.setReturnValue(null);
+        }
     }
 }
