@@ -16,16 +16,18 @@ At 60 FPS (16.67 ms budget), Pulse consumes < 0.3% of frametime.
 
 ## Expected Savings
 
-**No formal benchmarks exist yet.** The mod is pre-alpha. Real-world savings depend on scene complexity.
+**No formal benchmarks exist yet.** Real-world savings depend on scene complexity.
 
 | Optimization | Expected Gain | Status |
 |---|---|---|
-| Entity distance scaling | 5–15% in dense entity scenes | Active (via EntityOptimizer) |
-| Cloud disabling | 2–5% | Active (via CloudOptimizer) |
-| Rain/thunder reduction | 1–3% | Active (via WeatherOptimizer) |
-| Particle reduction | TBD | Internal params only |
-| Animation / Transparency / UI | TBD | Internal params only |
-| Chunk upload throttling | TBD | Internal params only |
+| Entity distance scaling | 5–15% in dense entity scenes | Mixin + Options API |
+| Cloud reduction | 2–5% | Options API |
+| Weather particle filtering | 1–3% | Internal param hooks |
+| Particle reduction | TBD | Mixin |
+| Animation culling | TBD | Mixin |
+| Chunk upload prioritization | TBD | Mixin |
+| Transparency sort reduction | TBD | Mixin |
+| UI update throttling | TBD | Mixin |
 | Shadow resolution (shader mods) | TBD | Iris reflection |
 
 ## Profiling

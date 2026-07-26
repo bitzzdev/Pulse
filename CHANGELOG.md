@@ -1,21 +1,35 @@
 # Changelog
 
-## [Unreleased]
-- EntityOptimizer: now owns `options.entityDistanceScaling()` save/apply/restore
-- CloudOptimizer: now owns `options.cloudStatus()` save/apply/restore
-- WeatherOptimizer: now owns `level.setRainLevel()`/`setThunderLevel()` save/apply/restore
-- PulseClient: stripped of all direct optimization logic (pure orchestration)
-- ParticleOptimizer: `ParticleStatus` enum does not exist in 26.2 Mojmap; module kept as internal-parameter-only
+## [0.2.0-alpha] - 2026-07-26
+
+### Fixed
+- WeatherOptimizer: removed `level.setRainLevel()`/`setThunderLevel()` manipulation that
+  corrupted server weather state, broke sky color, and caused permanent rain / invisible rain
+  — now filters weather effects via particle count, render distance, and thunder flash checks only
+- CloudOptimizer: fixed one-time `!settingsSaved` guard that could lock in `CloudStatus.OFF`
+  as the saved preference if clouds were already disabled when pressure first hit
+- CloudOptimizer: EMERGENCY recovery now calls `applyCloudState(true)` to restore the game
+  option after force-disabling clouds, instead of leaving it permanently OFF
+- WeatherOptimizer: removed `settingsSaved` one-time guard so weather state is re-saved
+  whenever the server sends a new rain/thunder level
+
+### Added
 - Mixin infrastructure: 5 mixins added, all with `require = 0`:
   - `ParticleEngineMixin` → `ParticleEngine#add(Particle)` ✓ stable
   - `EntityRenderDispatcherMixin` → `EntityRenderDispatcher#shouldRender(Entity, Frustum, ...)` ✓ stable
-  - `SectionRenderDispatcherMixin` → `SectionRenderDispatcher#schedule(CompileTask)` (was `scheduleCompile`)
-  - `HudMixin` → `Hud#renderChat(Graphics, DeltaTracker)`, `renderEffects`, `renderTooltip` (was `Gui`, params changed from `float` to `DeltaTracker`)
-  - `ChatComponentMixin` → `ChatComponent#tick()` ✓ stable
-- HudOverlay: `GuiGraphicsExtractor` → `GuiGraphics` (removed in 26.2)
-- Mixin config: `pulse.mixins.json` updated with `"defaultRequire": 0` and 5 client mixin entries
-- ARCHITECTURE.md: mixin table updated with 26.2-correct targets
-- Build via GitHub Actions only (no local `gradlew build`)
+  - `SectionRenderDispatcherMixin` → `SectionRenderDispatcher#rebuildSectionSync(RenderSection, RenderRegionCache)` ✓ stable
+  - `TransparencyMixin` → `RenderSection#resortTransparency()` (0 params) ✓ stable
+  - `UIOptimizerMixin` → `ChatComponent#tick()` (0 params) ✓ stable
+- All 9 modules now have mixin hooks or direct API access
+- Full adaptive lifecycle (save → apply → restore) for EntityOptimizer, CloudOptimizer
+
+### Changed
+- WeatherOptimizer: downgraded from "direct setRainLevel/setThunderLevel" to visual-only
+  filtering (particle count, distance culling, thunder flash gating)
+- README.md, ARCHITECTURE.md, PERFORMANCE.md updated to reflect current module hooks
+
+### Removed
+- All `GuiGraphics`/`Hud` mixin references (classes removed in 26.2 Mojmap)
 
 ## 0.1.0-alpha - Pre-release
 

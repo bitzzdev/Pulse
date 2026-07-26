@@ -6,7 +6,7 @@
 
 Pulse continuously monitors framerate performance and automatically adjusts cosmetic settings to maintain smooth gameplay. When performance recovers, changes are gradually reversed.
 
-**Status: Pre-alpha.** The core engine works. All 9 modules have mixin hooks or direct API access.
+**Status: Alpha (0.2.0).** All 9 modules have active mixin hooks or direct API access.
 
 ## What Works
 
@@ -14,31 +14,33 @@ Pulse continuously monitors framerate performance and automatically adjusts cosm
 - **Pressure scoring** — Combines metrics into a 0–100 pressure score with configurable sensitivity
 - **Stage transitions** — 5 stages (Normal → Minor → Moderate → Heavy → Emergency) with hysteresis and gradual recovery
 - **Entity distance scaling** — Reduces entity render radius under pressure (EntityOptimizer)
-- **Cloud reduction** — Disables clouds at Moderate+ stage (CloudOptimizer; bypassed when Sodium is present)
-- **Weather dampening** — Reduces rain/thunder intensity proportionally to pressure (WeatherOptimizer)
+- **Animation culling** — Skips entity animations beyond distance threshold (AnimationOptimizer)
+- **Cloud reduction** — Reduces cloud rendering at Moderate+; disables at Emergency (CloudOptimizer)
+- **Weather particle filtering** — Caps rain particle count, culls distant rain, gates thunder flashes (WeatherOptimizer)
+- **Particle throttling** — Caps total particles, reduces spawn probability, skips distant updates (ParticleOptimizer)
+- **Chunk upload prioritization** — Queues rebuild tasks by distance to camera (ChunkUploadOptimizer)
+- **Transparency sort reduction** — Reduces frequency of translucent layer re-sorting (TransparencyOptimizer)
+- **UI update throttling** — Reduces chat tick frequency when under pressure (UIOptimizer)
+- **Shadow resolution scaling** — Lowers Iris/OptiFine shadow distance and resolution (ShadowOptimizer)
 - **ModMenu GUI** — Full configuration screen with Cloth Config
 - **Debug overlay** — Shows FPS, pressure score, stage, active modules, estimated savings
 - **Compatibility scanner** — Detects Sodium, Iris, FerriteCore, etc.; disables overlapping modules to avoid conflicts
 
 ## Mixin-Hooked Modules
 
-These modules are connected to game code via mixins and actively modify rendering behavior:
+All 9 modules are wired to game code:
 
-- **ParticleOptimizer** — `ParticleEngine.add()` cancellation for distant/excess particles
-- **EntityOptimizer** — `EntityRenderDispatcher.shouldRender()` override for distance-based entity culling  
-- **AnimationOptimizer** — `EntityRenderDispatcher.shouldRender()` override for distance-based animation culling (same hook as EntityOptimizer, different thresholds)
-- **ChunkUploadOptimizer** — `SectionRenderDispatcher.rebuildSectionSync()` interception for upload queue prioritization
-- **TransparencyOptimizer** — `RenderSection.resortTransparency()` frequency reduction
-- **UIOptimizer** — `ChatComponent.tick()` frequency reduction
-
-## Direct-API Modules
-
-These modules modify Minecraft settings directly via vanilla Options API or reflection:
-
-- **CloudOptimizer** — Directly sets `options.cloudStatus()` to disable clouds
-- **WeatherOptimizer** — Directly calls `level.setRainLevel()` and `level.setThunderLevel()`
-- **ShadowOptimizer** — Uses reflection to call Iris/OptiFine shadow distance/resolution APIs
-- **EntityOptimizer (partial)** — Also sets `options.entityDistanceScaling()` via Options API
+| Module | Hook | Mechanism |
+|--------|------|-----------|
+| ParticleOptimizer | `ParticleEngine.add(Particle)` | Mixin (require=0) |
+| EntityOptimizer | `EntityRenderDispatcher.shouldRender()` + `options.entityDistanceScaling()` | Mixin + Options API |
+| AnimationOptimizer | `EntityRenderDispatcher.shouldRender()` | Mixin (require=0, same hook, different thresholds) |
+| ChunkUploadOptimizer | `SectionRenderDispatcher.rebuildSectionSync()` | Mixin (require=0) |
+| TransparencyOptimizer | `RenderSection.resortTransparency()` | Mixin (require=0) |
+| UIOptimizer | `ChatComponent.tick()` | Mixin (require=0) |
+| CloudOptimizer | `options.cloudStatus()` | Options API |
+| WeatherOptimizer | Particle count / distance / thunder flash filtering | Internal param hooks |
+| ShadowOptimizer | Iris/OptiFine shadow distance/resolution | Reflection |
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for details on the module system.
 

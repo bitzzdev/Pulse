@@ -38,10 +38,10 @@ Client Tick Loop
 2. **PressureEngine.update()** — normalizes each metric (0–1), multiplies by weights (total 1.0), sums to a 0–100 pressure score with rate-limiting and hysteresis
 3. **AdaptiveManager.update()** — translates pressure score into `OptimizationStage`, manages recovery delays (wait N ticks before stepping down)
 4. **ModuleManager.update(stage)** — calls `update()` on every registered module; each module that has a game-hook applies its own changes:
-   - EntityOptimizer → `options.entityDistanceScaling().set()`
+   - EntityOptimizer → `options.entityDistanceScaling().set()` + `EntityRenderDispatcher.shouldRender()` mixin
    - CloudOptimizer → `options.cloudStatus().set()`
-   - WeatherOptimizer → `level.setRainLevel()` / `level.setThunderLevel()`
-   - Others (Particle, Animation, Transparency, UI, ChunkUpload, Shadow) → internal parameters only (no public 26.2 API available)
+   - WeatherOptimizer → visual-only filtering (particle count, distance culling, thunder flash gating)
+   - Others (Particle, Animation, Transparency, UI, ChunkUpload, Shadow) → mixin hooks or internal parameters
 
 **PulseClient no longer applies any optimizations directly.** All game-state changes are owned by individual modules, each with its own save/restore lifecycle.
 
@@ -66,7 +66,7 @@ io.github.pulse/
     ModuleManager.java           — registers/updates all modules
     EntityOptimizer.java         — entityDistanceScaling saved/applied/restored
     CloudOptimizer.java          — cloudStatus saved/applied/restored
-    WeatherOptimizer.java        — rain/thunder level saved/applied/restored
+    WeatherOptimizer.java        — weather particle count, distance, and thunder flash filtering
     ParticleOptimizer.java       — internal parameters only
     AnimationOptimizer.java      — internal parameters only
     TransparencyOptimizer.java   — internal parameters only
@@ -94,27 +94,26 @@ io.github.pulse/
 
 ### Mixin infrastructure (require = 0)
 
-All untargeted modules now have companion mixin classes in `io.github.pulse.mixin/`. Each `@Inject` uses `require = 0` so the hook silently no-ops if the target method was renamed/restructured in a future Mojmap version. The modules remain functional at the internal-parameter level even when no mixin matches.
+Each mixin uses `require = 0` so the hook silently no-ops if the target method is renamed/restructured in a future Mojmap version. Modules remain functional at the internal-parameter level even when no mixin matches.
 
 | Mixin | Target | Module |
 |-------|--------|--------|
 | `ParticleEngineMixin` | `ParticleEngine#add(Particle)` | ParticleOptimizer |
-| `EntityRenderDispatcherMixin` | `EntityRenderDispatcher#shouldRender(Entity, ...)` | AnimationOptimizer |
-| `SectionRenderDispatcherMixin` | `SectionRenderDispatcher#scheduleCompile` | ChunkUploadOptimizer |
-| `GuiMixin` | `Hud#renderChat(GuiGraphics, DeltaTracker)`, `renderTooltip`, `renderEffects` | UIOptimizer |
-| `ChatComponentMixin` | `ChatComponent#tick` | UIOptimizer |
+| `EntityRenderDispatcherMixin` | `EntityRenderDispatcher#shouldRender(Entity, Frustum, double, double, double)` | EntityOptimizer / AnimationOptimizer |
+| `SectionRenderDispatcherMixin` | `SectionRenderDispatcher#rebuildSectionSync(RenderSection, RenderRegionCache)` | ChunkUploadOptimizer |
+| `TransparencyMixin` | `RenderSection#resortTransparency()` (0 params) | TransparencyOptimizer |
+| `ChatComponentMixin` | `ChatComponent#tick()` (0 params) | UIOptimizer |
 
-Three modules wire directly into Minecraft's public API:
-- **EntityOptimizer** — reads/writes `options.entityDistanceScaling()`
+Five modules wire into game code via mixins:
+
+- **ParticleOptimizer** — mixin into `ParticleEngine#add` for particle cancellation
+- **EntityOptimizer** — mixin into `EntityRenderDispatcher#shouldRender` + Options API for `entityDistanceScaling`
+- **AnimationOptimizer** — mixin into `EntityRenderDispatcher#shouldRender` (same hook, different distance thresholds)
+- **ChunkUploadOptimizer** — mixin into `SectionRenderDispatcher#rebuildSectionSync` for upload queue prioritization
+- **TransparencyOptimizer** — mixin into `RenderSection#resortTransparency` for sort frequency reduction
+- **UIOptimizer** — mixin into `ChatComponent#tick` for chat update frequency reduction
+
+Three modules use direct APIs:
 - **CloudOptimizer** — reads/writes `options.cloudStatus()`
-- **WeatherOptimizer** — reads/writes `level.setRainLevel()` / `level.setThunderLevel()`
-
-Six modules use mixin hooks (`require = 0`) backed by internal parameter fallbacks:
-- **ParticleOptimizer** — mixin into `ParticleEngine#add` + internal spawn probability/distance
-- **AnimationOptimizer** — mixin into `EntityRenderDispatcher#shouldRender` + internal distance thresholds
-- **ChunkUploadOptimizer** — mixin into `SectionRenderDispatcher#scheduleCompile` + internal queue logic
-- **UIOptimizer** — mixins into `Gui` and `ChatComponent` + internal update intervals
-- **TransparencyOptimizer** — internal parameters only (no viable hooks for sort-interval control)
+- **WeatherOptimizer** — visual-only filtering (no direct game-state manipulation)
 - **ShadowOptimizer** — Iris/OptiFine reflection with internal distance/resolution factors
-
-The current Mojmap version rewrote rendering (old mixin targets were renamed/restructured) and no Fabric events exist for per-entity or per-particle culling. Mixins target the most stable Mojmap method names and silently degrade to internal-parameter-only mode when a target is missing.
