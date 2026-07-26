@@ -6,7 +6,6 @@ import io.github.pulse.api.ModuleType;
 import io.github.pulse.api.OptimizationStage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.world.level.Level;
 
 public class WeatherOptimizer implements AdaptiveModule {
 
@@ -25,6 +24,8 @@ public class WeatherOptimizer implements AdaptiveModule {
     private boolean settingsSaved;
     private double savedRainLevel = -1;
     private double savedThunderLevel = -1;
+    private float lastAppliedRain = -1;
+    private float lastAppliedThunder = -1;
 
     @Override
     public void initialize() {
@@ -168,10 +169,24 @@ public class WeatherOptimizer implements AdaptiveModule {
     }
 
     private void saveSettings() {
-        if (!settingsSaved) {
-            ClientLevel level = getClientLevel();
-            savedRainLevel = level != null ? level.getRainLevel(1.0f) : 0;
-            savedThunderLevel = level != null ? level.getThunderLevel(1.0f) : 0;
+        ClientLevel level = getClientLevel();
+        if (level == null) return;
+
+        float currentRain = level.getRainLevel(1.0f);
+        float currentThunder = level.getThunderLevel(1.0f);
+
+        boolean rainChanged = lastAppliedRain < 0
+            || Math.abs(currentRain - lastAppliedRain) > 0.001f;
+        boolean thunderChanged = lastAppliedThunder < 0
+            || Math.abs(currentThunder - lastAppliedThunder) > 0.001f;
+
+        if (currentRain > 0.05f && rainChanged) {
+            savedRainLevel = currentRain;
+        }
+        if (currentThunder > 0.05f && thunderChanged) {
+            savedThunderLevel = currentThunder;
+        }
+        if (currentRain > 0.05f || currentThunder > 0.05f) {
             settingsSaved = true;
         }
     }
@@ -191,11 +206,15 @@ public class WeatherOptimizer implements AdaptiveModule {
         savedRainLevel = -1;
         savedThunderLevel = -1;
         settingsSaved = false;
+        lastAppliedRain = -1;
+        lastAppliedThunder = -1;
     }
 
     private void applyWeatherSettings() {
         ClientLevel level = getClientLevel();
-        if (level == null || !settingsSaved) {
+        if (level == null || savedRainLevel < 0) {
+            lastAppliedRain = -1;
+            lastAppliedThunder = -1;
             return;
         }
         float weatherFactor = switch (currentStage) {
@@ -205,8 +224,15 @@ public class WeatherOptimizer implements AdaptiveModule {
             case EMERGENCY -> 0.0f;
             default -> 1.0f;
         };
-        level.setRainLevel((float) savedRainLevel * weatherFactor);
-        level.setThunderLevel((float) savedThunderLevel * weatherFactor);
+        float targetRain = (float) savedRainLevel * weatherFactor;
+        float targetThunder = (float) savedThunderLevel * weatherFactor;
+        if (savedRainLevel > 0.2f) {
+            targetRain = Math.max(targetRain, 0.15f);
+        }
+        level.setRainLevel(targetRain);
+        level.setThunderLevel(targetThunder);
+        lastAppliedRain = targetRain;
+        lastAppliedThunder = targetThunder;
     }
 
     private void clearWeatherEffects() {
