@@ -31,7 +31,7 @@
 ### Removed
 - All `GuiGraphics`/`Hud` mixin references (classes removed in 26.2 Mojmap)
 
-## 0.1.0-alpha - Pre-release
+## [0.1.0-alpha] - Pre-release
 
 ### Added
 - Project scaffold with Fabric Loom build system (see `gradle.properties` for version pins)
