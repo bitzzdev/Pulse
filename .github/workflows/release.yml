@@ -1,9 +1,12 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. 0.3.0-alpha)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -38,19 +41,21 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Extract version from tag
-        id: get_version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
-
       - name: Extract release notes
         id: release_notes
         run: |
-          awk '/^## \[/{if (found) exit} found{print} /^## \['"${{ steps.get_version.outputs.version }}"'\]/{found=1}' CHANGELOG.md > release_notes.md
+          awk '/^## \[/{if (found) exit} found{print} /^## \['"${{ inputs.version }}"'\]/{found=1}' CHANGELOG.md > release_notes.md
+
+      - name: Create tag
+        run: |
+          git tag v${{ inputs.version }}
+          git push origin v${{ inputs.version }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          name: Pulse ${{ steps.get_version.outputs.version }}
+          tag_name: v${{ inputs.version }}
+          name: Pulse ${{ inputs.version }}
           body_path: release_notes.md
           files: build/libs/*.jar
           generate_release_notes: false
