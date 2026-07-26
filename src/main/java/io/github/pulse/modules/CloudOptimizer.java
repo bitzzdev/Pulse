@@ -103,6 +103,7 @@ public class CloudOptimizer implements AdaptiveModule {
             }
             forceDisabled = false;
             recoveryFrame = 0;
+            applyCloudState(true);
         }
         renderDistanceFactor = RENDER_DISTANCE_FACTORS[Math.min(ordinal, RENDER_DISTANCE_FACTORS.length - 1)];
         densityFactor = DENSITY_FACTORS[Math.min(ordinal, DENSITY_FACTORS.length - 1)];
@@ -179,10 +180,17 @@ public class CloudOptimizer implements AdaptiveModule {
     }
 
     private void saveSettings() {
+        Options options = Minecraft.getInstance().options;
+        CloudStatus current = options.cloudStatus().get();
+        if (current == CloudStatus.OFF) {
+            return;
+        }
         if (!settingsSaved) {
-            Options options = Minecraft.getInstance().options;
-            savedCloudStatus = options.cloudStatus().get();
+            savedCloudStatus = current;
             settingsSaved = true;
+        }
+        if (savedCloudStatus != current) {
+            savedCloudStatus = current;
         }
     }
 
