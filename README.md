@@ -6,7 +6,7 @@
 
 Pulse continuously monitors framerate performance and automatically adjusts cosmetic settings to maintain smooth gameplay. When performance recovers, changes are gradually reversed.
 
-**Status: Pre-alpha.** The core engine works. 3 of 9 modules are wired to Minecraft's Options API; the rest track internal parameters only (see below).
+**Status: Pre-alpha.** The core engine works. All 9 modules have mixin hooks or direct API access.
 
 ## What Works
 
@@ -20,16 +20,25 @@ Pulse continuously monitors framerate performance and automatically adjusts cosm
 - **Debug overlay** — Shows FPS, pressure score, stage, active modules, estimated savings
 - **Compatibility scanner** — Detects Sodium, Iris, FerriteCore, etc.; disables overlapping modules to avoid conflicts
 
-## Internal-Parameter-Only Modules
+## Mixin-Hooked Modules
 
-These modules register and track internal state every tick, but have **no game effect** in the current Minecraft version (26.2 Mojmap). They await mixin targets or Fabric events that don't exist yet in the rewritten rendering pipeline:
+These modules are connected to game code via mixins and actively modify rendering behavior:
 
-- ParticleOptimizer
-- AnimationOptimizer
-- TransparencyOptimizer
-- UIOptimizer
-- ChunkUploadOptimizer
-- ShadowOptimizer (has Iris/OptiFine reflection path, untested)
+- **ParticleOptimizer** — `ParticleEngine.add()` cancellation for distant/excess particles
+- **EntityOptimizer** — `EntityRenderDispatcher.shouldRender()` override for distance-based entity culling  
+- **AnimationOptimizer** — `EntityRenderDispatcher.shouldRender()` override for distance-based animation culling (same hook as EntityOptimizer, different thresholds)
+- **ChunkUploadOptimizer** — `SectionRenderDispatcher.rebuildSectionSync()` interception for upload queue prioritization
+- **TransparencyOptimizer** — `RenderSection.resortTransparency()` frequency reduction
+- **UIOptimizer** — `ChatComponent.tick()` frequency reduction
+
+## Direct-API Modules
+
+These modules modify Minecraft settings directly via vanilla Options API or reflection:
+
+- **CloudOptimizer** — Directly sets `options.cloudStatus()` to disable clouds
+- **WeatherOptimizer** — Directly calls `level.setRainLevel()` and `level.setThunderLevel()`
+- **ShadowOptimizer** — Uses reflection to call Iris/OptiFine shadow distance/resolution APIs
+- **EntityOptimizer (partial)** — Also sets `options.entityDistanceScaling()` via Options API
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for details on the module system.
 
