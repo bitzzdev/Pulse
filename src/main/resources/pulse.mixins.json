@@ -3,7 +3,11 @@
   "package": "io.github.pulse.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "ParticleEngineMixin"
+    "ParticleEngineMixin",
+    "EntityRenderDispatcherMixin",
+    "SectionRenderDispatcherMixin",
+    "TransparencyMixin",
+    "UIOptimizerMixin"
   ],
   "injectors": {
     "defaultRequire": 0
