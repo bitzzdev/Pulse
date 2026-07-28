@@ -1,7 +1,7 @@
 # Pulse — Adaptive Performance Manager for Minecraft
 
-![Build](https://img.shields.io/github/actions/workflow/status/bitzCognautic/Pulse/build.yml?branch=main&label=build)
-![License](https://img.shields.io/github/license/bitzCognautic/Pulse)
+![Build](https://img.shields.io/github/actions/workflow/status/bitzzdev/Pulse/build.yml?branch=main&label=build)
+![License](https://img.shields.io/github/license/bitzzdev/Pulse)
 ![Fabric](https://img.shields.io/badge/Fabric%20Loader-0.19.3%2B-orange)
 
 Pulse continuously monitors framerate performance and automatically adjusts cosmetic settings to maintain smooth gameplay. When performance recovers, changes are gradually reversed.
@@ -64,6 +64,10 @@ See `gradle.properties` for exact version pins. Current values:
 ```
 
 The compiled JAR will be in `build/libs/`.
+
+## Support
+
+[![ko-fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/bitzdev)
 
 ## License
 
